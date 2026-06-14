@@ -217,6 +217,30 @@ tr:hover td{background:#FAFBFF}
 .sync-ind{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--teal);font-weight:600}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.dbtab{padding:9px 16px;border:none;background:transparent;color:var(--gray);font-size:12px;font-weight:700;
+  cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.dbtab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--blue3)}
+.dbtab:hover:not(.active){color:var(--text);background:var(--gray2)}
+.dbsec{display:none}.dbsec.active{display:block}
+.db-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+  border-bottom:1px solid var(--gray3);font-size:13px;transition:.15s}
+.db-row:last-child{border-bottom:none}
+.db-row:hover{background:var(--gray2)}
+.db-actions{display:flex;gap:5px;flex-shrink:0}
+
+
+.dbtab{padding:9px 16px;border:none;background:transparent;color:var(--gray);font-size:12px;font-weight:700;
+  cursor:pointer;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.dbtab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--blue3)}
+.dbtab:hover:not(.active){color:var(--text);background:var(--gray2)}
+.dbsec{display:none}.dbsec.active{display:block}
+.db-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;
+  border-bottom:1px solid var(--gray3);font-size:13px;transition:.15s}
+.db-row:last-child{border-bottom:none}
+.db-row:hover{background:var(--gray2)}
+.db-actions{display:flex;gap:5px;flex-shrink:0}
+
 </style>
 </head>
 <body>
@@ -422,7 +446,159 @@ tr:hover td{background:#FAFBFF}
       </div>
     </div>
 
-  </div><!-- /content -->
+  
+    <!-- MODULE 5: DATABASE ADMIN -->
+    <div class="mod" id="mod-database-admin">
+      <div class="sh">
+        <div>
+          <div class="sh-title">🗄️ จัดการฐานข้อมูล</div>
+          <div class="sh-sub">เพิ่ม / แก้ไข / อัปเดต ข้อมูล Master Data ทั้งหมด</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-o btn-sm" onclick="loadAllDB()">🔄 Refresh ทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- DB Sub-tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;border-bottom:1.5px solid var(--gray3);padding-bottom:0">
+        <button class="dbtab active" onclick="switchDB('db-staff',this)">👷 Staff</button>
+        <button class="dbtab" onclick="switchDB('db-type',this)">📋 Type OT-AIR</button>
+        <button class="dbtab" onclick="switchDB('db-tenant-level',this)">⭐ Tenant Level</button>
+        <button class="dbtab" onclick="switchDB('db-rate',this)">💰 Rate Code</button>
+        <button class="dbtab" onclick="switchDB('db-building',this)">🏢 Building/Unit</button>
+        <button class="dbtab" onclick="switchDB('db-tenants',this)">👥 Tenants List</button>
+      </div>
+
+      <!-- DB: Staff -->
+      <div class="dbsec active" id="db-staff">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#EDE9FE">👷</div>รายชื่อช่าง (Staff Name)</div>
+          <div class="fgrid" style="margin-bottom:12px">
+            <div class="fg"><label class="flabel">ชื่อช่าง</label><input class="finput" id="new-staff" placeholder="ชื่อช่าง เช่น Attanop"></div>
+            <div class="fg" style="justify-content:flex-end;padding-top:18px">
+              <button class="btn btn-p" onclick="addStaff()">＋ เพิ่มช่าง</button>
+            </div>
+          </div>
+          <div id="staff-list-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB: Type OT-AIR -->
+      <div class="dbsec" id="db-type">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#EFF6FF">📋</div>ประเภท OT-AIR (Type_OT-AIR)</div>
+          <div class="fgrid" style="margin-bottom:12px">
+            <div class="fg ffull"><label class="flabel">ประเภทใหม่</label><input class="finput" id="new-type" placeholder="เช่น ระบบปรับอากาศ-อากาศลมเย็น"></div>
+          </div>
+          <div class="frow" style="margin-top:0;margin-bottom:12px">
+            <button class="btn btn-p" onclick="addType()">＋ เพิ่มประเภท</button>
+          </div>
+          <div id="type-list-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB: Tenant Level -->
+      <div class="dbsec" id="db-tenant-level">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#FFFBEB">⭐</div>ระดับ Tenant (Tenant_Level Charge)</div>
+          <div id="tenant-level-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB: Rate Code -->
+      <div class="dbsec" id="db-rate">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#ECFDF5">💰</div>Rate Code (Code_Rate Charge)
+            <span style="margin-left:auto;font-size:11px;color:var(--gray)" id="rate-count"></span>
+          </div>
+          <!-- Search/Filter -->
+          <div class="fgrid" style="margin-bottom:12px">
+            <div class="fg">
+              <label class="flabel">ค้นหา Code</label>
+              <input class="finput" id="rate-search" placeholder="พิมพ์ Code หรือ Description..." oninput="filterRateDB()">
+            </div>
+            <div class="fg">
+              <label class="flabel">Building</label>
+              <select class="fselect" id="rate-filter-bld" onchange="filterRateDB()">
+                <option value="">ทุก Building</option>
+                <option>BTE</option><option>BTB</option><option>UBCII</option>
+              </select>
+            </div>
+            <div class="fg" style="justify-content:flex-end;padding-top:18px">
+              <button class="btn btn-p btn-sm" onclick="openAddRate()">＋ เพิ่ม Rate Code</button>
+            </div>
+          </div>
+          <div id="rate-db-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลด Rate Codes...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB: Building/Unit -->
+      <div class="dbsec" id="db-building">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#EFF6FF">🏢</div>Building & Unit (Building Name)
+            <span style="margin-left:auto;font-size:11px;color:var(--gray)" id="bld-count"></span>
+          </div>
+          <div class="fgrid" style="margin-bottom:12px">
+            <div class="fg">
+              <label class="flabel">ค้นหา Unit</label>
+              <input class="finput" id="bld-search" placeholder="เช่น 22-004 หรือ BTE..." oninput="filterBldDB()">
+            </div>
+            <div class="fg">
+              <label class="flabel">Building</label>
+              <select class="fselect" id="bld-filter" onchange="filterBldDB()">
+                <option value="">ทุก Building</option>
+                <option>BTE</option><option>BTB</option><option>UBCII</option>
+              </select>
+            </div>
+            <div class="fg" style="justify-content:flex-end;padding-top:18px">
+              <button class="btn btn-p btn-sm" onclick="openAddUnit()">＋ เพิ่ม Unit</button>
+            </div>
+          </div>
+          <div id="bld-db-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB: Tenants List -->
+      <div class="dbsec" id="db-tenants">
+        <div class="card">
+          <div class="card-title"><div class="ctico" style="background:#F5F3FF">👥</div>รายชื่อ Tenant (Tenants list)
+            <span style="margin-left:auto;font-size:11px;color:var(--gray)" id="tenant-count"></span>
+          </div>
+          <div class="fgrid" style="margin-bottom:12px">
+            <div class="fg">
+              <label class="flabel">ค้นหา Tenant</label>
+              <input class="finput" id="tenant-search" placeholder="ชื่อบริษัท หรือ Code..." oninput="filterTenantDB()">
+            </div>
+            <div class="fg">
+              <label class="flabel">Building</label>
+              <select class="fselect" id="tenant-filter-bld" onchange="filterTenantDB()">
+                <option value="">ทุก Building</option>
+                <option>BTE</option><option>BTB</option><option>UBCII</option>
+              </select>
+            </div>
+            <div class="fg" style="justify-content:flex-end;padding-top:18px">
+              <button class="btn btn-p btn-sm" onclick="openAddTenant()">＋ เพิ่ม Tenant</button>
+            </div>
+          </div>
+          <div id="tenant-db-wrap">
+            <div class="loading"><span class="spinner"></span>กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /mod-database-admin -->
+
+</div><!-- /content -->
 </div><!-- /app -->
 
 <!-- MODAL: New OT Request -->
@@ -589,6 +765,102 @@ tr:hover td{background:#FAFBFF}
   </div>
 </div>
 
+
+<!-- MODAL: Add/Edit Rate Code -->
+<div class="moverlay" id="mod-add-rate">
+  <div class="mbox">
+    <div class="mtitle">💰 เพิ่ม / แก้ไข Rate Code
+      <button class="mclose" onclick="closeMod('mod-add-rate')">✕</button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flabel">Building</label>
+        <select class="fselect" id="ar-bld"><option>BTE</option><option>BTB</option><option>UBCII</option></select></div>
+      <div class="fg"><label class="flabel">Tenant Level</label>
+        <select class="fselect" id="ar-level"><option>Normal</option><option>VIP</option><option>VVIP</option></select></div>
+      <div class="fg ffull"><label class="flabel">Code OT Air</label>
+        <input class="finput" id="ar-code" placeholder="XXXCH_OT_AIR_BTE_..."></div>
+      <div class="fg ffull"><label class="flabel">Description</label>
+        <textarea class="ftextarea" id="ar-desc" placeholder="อธิบายอัตรา..."></textarea></div>
+      <div class="fg"><label class="flabel">ประเภท OT Air</label>
+        <select class="fselect" id="ar-type">
+          <option>Air condition</option><option>Chiller Water Cool</option><option>Cooling Water</option></select></div>
+      <div class="fg"><label class="flabel">Minimum Condition</label>
+        <input class="finput" id="ar-mincond" placeholder="N/A / Fix / 24Hr / >2Hr"></div>
+      <div class="fg"><label class="flabel">Minimum Charge (THB)</label>
+        <input class="finput" type="number" id="ar-minchg" placeholder="0" value="0"></div>
+      <div class="fg"><label class="flabel">Monthly Charge (THB)</label>
+        <input class="finput" type="number" id="ar-monthly" placeholder="0" value="0"></div>
+      <div class="fg"><label class="flabel">Hourly Charge (THB/hr)</label>
+        <input class="finput" type="number" id="ar-hourly" placeholder="0" value="0"></div>
+      <div class="fg"><label class="flabel">Per Area (THB/M²)</label>
+        <input class="finput" type="number" id="ar-area" placeholder="0" value="0"></div>
+    </div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="saveRateCode()">💾 บันทึก Rate Code</button>
+      <button class="btn btn-o" onclick="closeMod('mod-add-rate')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Unit -->
+<div class="moverlay" id="mod-add-unit">
+  <div class="mbox">
+    <div class="mtitle">🏢 เพิ่ม / แก้ไข Unit
+      <button class="mclose" onclick="closeMod('mod-add-unit')">✕</button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flabel">Building</label>
+        <select class="fselect" id="au-bld"><option>BTE</option><option>BTB</option><option>UBCII</option></select></div>
+      <div class="fg"><label class="flabel">Floor</label>
+        <input class="finput" id="au-floor" placeholder="เช่น 22"></div>
+      <div class="fg"><label class="flabel">Unit No.</label>
+        <input class="finput" id="au-unit" placeholder="เช่น 22-004"></div>
+      <div class="fg"><label class="flabel">Unit Type</label>
+        <select class="fselect" id="au-type">
+          <option>Office</option><option>Circulation Space</option><option>Telecom</option><option>Retail</option></select></div>
+      <div class="fg"><label class="flabel">SQM</label>
+        <input class="finput" type="number" id="au-sqm" placeholder="พื้นที่ m²"></div>
+      <div class="fg"><label class="flabel">Common Area SQM</label>
+        <input class="finput" type="number" id="au-common" placeholder="0" value="0"></div>
+    </div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="saveUnit()">💾 บันทึก Unit</button>
+      <button class="btn btn-o" onclick="closeMod('mod-add-unit')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Tenant -->
+<div class="moverlay" id="mod-add-tenant">
+  <div class="mbox">
+    <div class="mtitle">👥 เพิ่ม / แก้ไข Tenant
+      <button class="mclose" onclick="closeMod('mod-add-tenant')">✕</button>
+    </div>
+    <div class="fgrid">
+      <div class="fg"><label class="flabel">Tenant Code</label>
+        <input class="finput" id="at-code" placeholder="เช่น t0000386"></div>
+      <div class="fg"><label class="flabel">Building</label>
+        <select class="fselect" id="at-bld"><option>BTE</option><option>BTB</option><option>UBCII</option></select></div>
+      <div class="fg ffull"><label class="flabel">ชื่อบริษัท (Tenant Name)</label>
+        <input class="finput" id="at-name" placeholder="ชื่อบริษัทเต็ม"></div>
+      <div class="fg"><label class="flabel">Space / Unit</label>
+        <input class="finput" id="at-space" placeholder="เช่น 22-004"></div>
+      <div class="fg"><label class="flabel">พื้นที่เช่า (SQM)</label>
+        <input class="finput" type="number" id="at-sqm" placeholder="m²"></div>
+      <div class="fg"><label class="flabel">Tenant Level</label>
+        <select class="fselect" id="at-level"><option>Normal</option><option>VIP</option><option>VVIP</option></select></div>
+      <div class="fg"><label class="flabel">Agreement No.</label>
+        <input class="finput" id="at-agree" placeholder="เช่น 11A140003/01"></div>
+      <div class="fg"><label class="flabel">Status</label>
+        <select class="fselect" id="at-status"><option>Current</option><option>Inactive</option></select></div>
+    </div>
+    <div class="frow">
+      <button class="btn btn-p" onclick="saveTenant()">💾 บันทึก Tenant</button>
+      <button class="btn btn-o" onclick="closeMod('mod-add-tenant')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -617,7 +889,8 @@ const TABS = {
   admin:       [{id:'tenant-request',   label:'🏢 Tenant',          badge:0},
                 {id:'building-assign',  label:'🏗️ Building',        badge:0},
                 {id:'engineering-work', label:'🔧 Engineering',     badge:0},
-                {id:'cs-report',        label:'📊 CS Report',       badge:0}],
+                {id:'cs-report',        label:'📊 CS Report',       badge:0},
+                {id:'database-admin',   label:'🗄️ Database',        badge:0}],
 };
 
 // In-memory data cache
@@ -685,6 +958,12 @@ function switchTab(id,btn){
   if(el)el.classList.add('active');
   if(btn)btn.classList.add('active');
   else document.querySelector('.ntab')?.classList.add('active');
+  // Auto-load DB when entering database tab
+  if(id==='mod-database-admin'){
+    setTimeout(()=>{
+      if(!dbData.staff.length) loadStaffDB();
+    },100);
+  }
 }
 
 // =========================================
@@ -958,6 +1237,7 @@ function renderEngTable(data){
       :isOpen
       ?`<button class="btn btn-r btn-sm" onclick="engAction(${i},'close')">■ ปิด</button>`
       :`<button class="btn btn-g btn-sm" onclick="engAction(${i},'open')">▶ เปิด</button>`;
+    const actualHrs=r['Cal_Actual_Hours']?`<strong style="color:var(--teal)">${r['Cal_Actual_Hours']} ชม.</strong>`:'—';
     return `<tr>
       <td><strong>${r['OT-AIR Work Request No.']||'—'}</strong></td>
       <td><span class="tag t-navy">${r['Building']||'—'}</span></td>
@@ -965,14 +1245,15 @@ function renderEngTable(data){
       <td>${r['Start time']||'—'} – ${r['Finish time']||'—'}</td>
       <td>${r['Staff Name']||'—'}</td>
       <td style="font-size:10px">${(r['Code OT Air']||'—').replace('XXXCH_OT_AIR_','')}</td>
-      <td>${r['Open_OT-Air(Time)']||'—'}</td>
-      <td>${r['Close_OT-Air(Time)']||'—'}</td>
+      <td style="color:var(--teal);font-weight:600">${r['Open_OT-Air(Time)']||'—'}</td>
+      <td style="color:var(--rose);font-weight:600">${r['Close_OT-Air(Time)']||'—'}</td>
+      <td>${actualHrs}</td>
       <td>${stateTag}</td>
       <td>${action}</td>
     </tr>`;
   }).join('');
   document.getElementById('eng-table-wrap').innerHTML=`<div class="tw"><table>
-    <thead><tr><th>เลขที่</th><th>Bld</th><th>Space</th><th>เวลา Plan</th><th>ช่าง</th><th>Rate Code</th><th>เปิด</th><th>ปิด</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
+    <thead><tr><th>เลขที่</th><th>Bld</th><th>Space</th><th>เวลา Plan</th><th>ช่าง</th><th>Rate Code</th><th>เปิดจริง</th><th>ปิดจริง</th><th>ชม.จริง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
 }
@@ -983,7 +1264,7 @@ function renderEngTableDemo(){
   document.getElementById('es-done').textContent='1';
   document.getElementById('es-total').textContent='2';
   document.getElementById('eng-table-wrap').innerHTML=`<div class="tw"><table>
-    <thead><tr><th>เลขที่</th><th>Bld</th><th>Space</th><th>เวลา Plan</th><th>ช่าง</th><th>Rate Code</th><th>เปิด</th><th>ปิด</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
+    <thead><tr><th>เลขที่</th><th>Bld</th><th>Space</th><th>เวลา Plan</th><th>ช่าง</th><th>Rate Code</th><th>เปิดจริง</th><th>ปิดจริง</th><th>ชม.จริง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
     <tbody>
       <tr><td><strong>OT_AIR202661</strong></td><td><span class="tag t-navy">BTE</span></td><td>22-004</td><td>17:30 – 22:30</td><td>Miss Aron</td><td style="font-size:10px">BTB_W07N2</td><td>17:30</td><td>22:30</td><td><span class="tag t-green">✓ ปิดแล้ว</span></td><td><button class="btn btn-o btn-sm" onclick="showDetailDemo('OT_AIR202661')">ดู</button></td></tr>
       <tr><td><strong>OT_AIR202662</strong></td><td><span class="tag t-navy">BTE</span></td><td>B1-04A</td><td>18:00 – 23:30</td><td>—</td><td style="font-size:10px">—</td><td>—</td><td>—</td><td><span class="tag t-gray">รอเริ่ม</span></td><td><button class="btn btn-g btn-sm" onclick="toast('▶ เริ่มงาน OT_AIR202662')">▶ เปิด</button></td></tr>
@@ -1097,28 +1378,49 @@ function showCSDetail(i){
 // ACTIONS
 // =========================================
 function doAck(i){
-  if(gData.buildingAssigns[i]){
-    gData.buildingAssigns[i]['Admin helpdaesk (Acknowledge/Reject)']='Acknowledge';
-    renderBuildingTable(gData.buildingAssigns);
-    updateBuildingStats(gData.buildingAssigns);
-    toast('✅ Acknowledge เรียบร้อย');
-  }
+  const r=gData.buildingAssigns[i];
+  if(!r)return;
+  r['Admin helpdaesk (Acknowledge/Reject)']='Acknowledge';
+  r['Building Date recording']=new Date().toLocaleString('th-TH');
+  renderBuildingTable(gData.buildingAssigns);
+  updateBuildingStats(gData.buildingAssigns);
+  // Show assign modal auto
+  setTimeout(()=>{
+    const sel=document.getElementById('as-req');
+    sel.innerHTML='<option value="">— เลือก —</option>';
+    gData.buildingAssigns.forEach(row=>{
+      const o=document.createElement('option');
+      o.value=row['OT-AIR Work Request No.'];
+      o.textContent=row['OT-AIR Work Request No.']+' ('+( row['Name']||'').substring(0,20)+')';
+      sel.appendChild(o);
+    });
+    sel.value=r['OT-AIR Work Request No.'];
+    openMod('mod-assign');
+  },300);
+  toast('✅ Acknowledge เรียบร้อย — กรุณามอบหมายช่าง');
 }
 function doReject(i){
-  if(gData.buildingAssigns[i]){
-    gData.buildingAssigns[i]['Admin helpdaesk (Acknowledge/Reject)']='Reject';
-    renderBuildingTable(gData.buildingAssigns);
-    updateBuildingStats(gData.buildingAssigns);
-    toast('❌ Reject คำขอแล้ว');
-  }
+  const r=gData.buildingAssigns[i];
+  if(!r)return;
+  if(!confirm('ยืนยันการ Reject คำขอ '+r['OT-AIR Work Request No.']+'?'))return;
+  r['Admin helpdaesk (Acknowledge/Reject)']='Reject';
+  renderBuildingTable(gData.buildingAssigns);
+  updateBuildingStats(gData.buildingAssigns);
+  toast('❌ Reject คำขอ '+r['OT-AIR Work Request No.']+' แล้ว');
 }
 function doAssign(i){
-  openMod('mod-assign');
   const r=gData.buildingAssigns[i];
-  if(r){
-    const sel=document.getElementById('as-req');
-    for(let opt of sel.options){if(opt.value===r['OT-AIR Work Request No.']){sel.value=opt.value;break}}
-  }
+  if(!r)return;
+  const sel=document.getElementById('as-req');
+  sel.innerHTML='<option value="">— เลือก —</option>';
+  gData.buildingAssigns.forEach(row=>{
+    const o=document.createElement('option');
+    o.value=row['OT-AIR Work Request No.'];
+    o.textContent=row['OT-AIR Work Request No.']+' ('+( row['Name']||'').substring(0,20)+')';
+    sel.appendChild(o);
+  });
+  sel.value=r['OT-AIR Work Request No.'];
+  openMod('mod-assign');
 }
 
 function engAction(i,type){
@@ -1127,40 +1429,81 @@ function engAction(i,type){
   const now=new Date();
   document.getElementById('ea-date').value=now.toISOString().split('T')[0];
   document.getElementById('ea-time').value=now.toTimeString().slice(0,5);
-  document.getElementById('ea-action').value=type==='open'?'Open':'Close';
+  const actionSel=document.getElementById('ea-action');
+  actionSel.innerHTML='';
+  if(type==='open'){
+    ['Open','Cancel'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;actionSel.appendChild(o);});
+    actionSel.value='Open';
+  } else {
+    ['Close','Cancel'].forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;actionSel.appendChild(o);});
+    actionSel.value='Close';
+  }
+  // Set staff name if already assigned
+  const staffSel=document.getElementById('ea-name');
+  if(r['Staff Name']){
+    const found=[...staffSel.options].find(o=>o.value===r['Staff Name']);
+    if(found)staffSel.value=r['Staff Name'];
+  }
+  // Set shift
+  const shiftSel=document.getElementById('ea-shift');
+  const shiftVal=r['Shift']||r['Working Shift(Open)']||r['Working shift(Close)']||'';
+  if(shiftVal){
+    const f=[...shiftSel.options].find(o=>o.value===shiftVal||o.textContent===shiftVal);
+    if(f)shiftSel.value=f.value;
+  }
+  const isOpen=type==='open';
+  document.getElementById('eng-modal-title').textContent=(isOpen?'▶ เปิด':'■ ปิด')+' ระบบ Aircon';
   document.getElementById('eng-action-info').innerHTML=`
-    <div><span>เลขที่</span><strong>${r['OT-AIR Work Request No.']||'—'}</strong></div>
-    <div><span>Space</span><strong>${r['Space']||'—'}</strong></div>
+    <div><span>เลขที่คำขอ</span><strong>${r['OT-AIR Work Request No.']||'—'}</strong></div>
     <div><span>Building</span><strong>${r['Building']||'—'}</strong></div>
-    <div><span>ประเภท</span><strong style="font-size:11px">${r['Type_OT-AIR']||'—'}</strong></div>`;
-  document.getElementById('eng-modal-title').textContent=(type==='open'?'▶ เปิด':'■ ปิด')+' ระบบ Aircon';
+    <div><span>Space / Unit</span><strong>${r['Space']||'—'}</strong></div>
+    <div><span>ประเภทระบบ</span><strong style="font-size:10px">${r['Type_OT-AIR']||'—'}</strong></div>
+    <div><span>เวลา Plan</span><strong>${r['Start time']||'—'} – ${r['Finish time']||'—'}</strong></div>
+    <div><span>Rate Code</span><strong style="font-size:10px">${(r['Code OT Air']||'—').replace('XXXCH_OT_AIR_','')}</strong></div>
+    ${r['Open_OT-Air(Time)']?`<div><span>เปิดแล้วเมื่อ</span><strong style="color:var(--teal)">${r['Open_OT-Air(Time)']}</strong></div>`:''}
+    ${r['Close_OT-Air(Time)']?`<div><span>ปิดแล้วเมื่อ</span><strong style="color:var(--rose)">${r['Close_OT-Air(Time)']}</strong></div>`:''}`;
   openMod('mod-eng-action');
 }
 
 function submitEngAction(){
   const i=currentEngRow;
-  if(i===null)return;
+  if(i===null){toast('⚠️ เกิดข้อผิดพลาด');return;}
   const date=document.getElementById('ea-date').value;
   const time=document.getElementById('ea-time').value;
   const name=document.getElementById('ea-name').value;
   const shift=document.getElementById('ea-shift').value;
   const action=document.getElementById('ea-action').value;
-  if(gData.engWork[i]){
-    const r=gData.engWork[i];
-    if(action==='Open'||action==='Cancel'){
-      r['Open_OT-Air(Date)']=date;r['Open_OT-Air(Time)']=time;
-      r['Engineering Name(Open)']=name;r['Working Shift(Open)']=shift;
-      r['Engineering work(Open/Cancel)']=action;
-    } else {
-      r['Close_OT-Air(Date)']=date;r['Close_OT-Air(Time)']=time;
-      r['Engineering Name(Close)']=name;r['Working shift(Close)']=shift;
-      r['Engineering work(Close/cancel)']=action;
+  if(!date||!time){toast('⚠️ กรุณากรอกวันที่และเวลา');return;}
+  const r=gData.engWork[i];
+  if(!r){toast('⚠️ ไม่พบข้อมูล');return;}
+  if(action==='Open'){
+    r['Open_OT-Air(Date)']=date;
+    r['Open_OT-Air(Time)']=time;
+    r['Engineering Name(Open)']=name;
+    r['Working Shift(Open)']=shift;
+    r['Engineering work(Open/Cancel)']='Open';
+    r['Staff Name']=r['Staff Name']||name;
+  } else if(action==='Cancel'){
+    r['Engineering work(Open/Cancel)']='Cancel';
+  } else if(action==='Close'){
+    r['Close_OT-Air(Date)']=date;
+    r['Close_OT-Air(Time)']=time;
+    r['Engineering Name(Close)']=name;
+    r['Working shift(Close)']=shift;
+    r['Engineering work(Close/cancel)']='Close';
+    // Auto-calc actual hours
+    if(r['Open_OT-Air(Time)']){
+      const openMin=timeToMin(r['Open_OT-Air(Time)']);
+      const closeMin=timeToMin(time);
+      const diff=(closeMin-openMin+1440)%1440;
+      r['Cal_Actual_Hours']=(diff/60).toFixed(2);
     }
-    renderEngTable(gData.engWork);
-    updateEngStats(gData.engWork);
   }
+  renderEngTable(gData.engWork);
+  updateEngStats(gData.engWork);
   closeMod('mod-eng-action');
-  toast('✅ บันทึกการ'+action+' เรียบร้อย — '+time);
+  const actionTh={'Open':'เปิด','Close':'ปิด','Cancel':'ยกเลิก'};
+  toast('✅ บันทึก'+( actionTh[action]||action)+' ระบบ Aircon เวลา '+time+' เรียบร้อย');
 }
 
 function submitRequest(){
@@ -1195,9 +1538,29 @@ function submitAssign(){
   const shift=document.getElementById('as-shift').value;
   const code=document.getElementById('as-code').value;
   const ack=document.getElementById('as-ack').value;
-  const idx=gData.buildingAssigns.findIndex(r=>r['OT-AIR Work Request No.']==='req');
+  if(!req){toast('⚠️ กรุณาเลือกเลขที่คำขอ');return;}
+  if(!staff){toast('⚠️ กรุณาเลือกช่าง');return;}
+  const idx=gData.buildingAssigns.findIndex(r=>r['OT-AIR Work Request No.']===req);
+  if(idx>=0){
+    gData.buildingAssigns[idx]['Staff Name']=staff;
+    gData.buildingAssigns[idx]['Shift']=shift;
+    gData.buildingAssigns[idx]['Code OT Air']=code;
+    gData.buildingAssigns[idx]['Admin helpdaesk (Acknowledge/Reject)']=ack;
+    gData.buildingAssigns[idx]['Manager Consider(Approved/Waiting/Reject)']='Waiting';
+    renderBuildingTable(gData.buildingAssigns);
+    updateBuildingStats(gData.buildingAssigns);
+    // Also update eng work list
+    const eIdx=gData.engWork.findIndex(r=>r['OT-AIR Work Request No.']===req);
+    if(eIdx>=0){
+      gData.engWork[eIdx]['Staff Name']=staff;
+      gData.engWork[eIdx]['Shift']=shift;
+      gData.engWork[eIdx]['Code OT Air']=code;
+      renderEngTable(gData.engWork);
+      updateEngStats(gData.engWork);
+    }
+  }
   closeMod('mod-assign');
-  toast('✅ มอบหมาย '+req+' → '+staff+' ('+shift+') เรียบร้อย');
+  toast('✅ มอบหมาย '+req+' → '+staff+' ('+shift+') เรียบร้อย — รอ Manager Approve');
 }
 
 // =========================================
@@ -1244,35 +1607,89 @@ async function loadUnits(){
 
 function showDetail(i,type){
   let r,title;
-  if(type==='tenant')r=gData.tenantReqs[i],title='📋 รายละเอียดคำขอ';
-  else if(type==='building')r=gData.buildingAssigns[i],title='🏗️ รายละเอียดการมอบหมาย';
-  else if(type==='eng')r=gData.engWork[i],title='🔧 รายละเอียดงาน Engineering';
-  if(!r)return;
-  document.getElementById('mod-detail').querySelector('.mtitle').firstChild.textContent=title+' ';
-  document.getElementById('detail-content').innerHTML=`
-    <div class="irow">
-      <div><span>เลขที่คำขอ</span><strong>${r['OT-AIR Work Request No.']||'—'}</strong></div>
-      <div><span>วันที่</span><strong>${r['Date']||'—'}</strong></div>
-      <div><span>Building</span><strong>${r['Building']||'—'}</strong></div>
-      <div><span>Space</span><strong>${r['Space']||'—'}</strong></div>
-      <div><span>Tenant</span><strong>${r['Name']||'—'}</strong></div>
-      <div><span>ประเภท</span><strong style="font-size:11px">${r['Type_OT-AIR']||'—'}</strong></div>
-      <div><span>เวลาเริ่ม</span><strong>${r['Start time']||'—'}</strong></div>
-      <div><span>เวลาสิ้นสุด</span><strong>${r['Finish time']||'—'}</strong></div>
-      <div><span>ผู้แจ้ง</span><strong>${r['Name request']||'—'}</strong></div>
-      <div><span>โทร</span><strong>${r['Tel No.']||'—'}</strong></div>
-      ${r['Admin helpdaesk (Acknowledge/Reject)']?`<div><span>Admin</span><strong>${r['Admin helpdaesk (Acknowledge/Reject)']}</strong></div>`:''}
-      ${r['Staff Name']?`<div><span>ช่าง</span><strong>${r['Staff Name']}</strong></div>`:''}
-      ${r['Manager Consider(Approved/Waiting/Reject)']?`<div><span>Manager</span><strong>${r['Manager Consider(Approved/Waiting/Reject)']}</strong></div>`:''}
-      ${r['Open_OT-Air(Time)']?`<div><span>เปิดเวลา</span><strong>${r['Open_OT-Air(Time)']}</strong></div>`:''}
-      ${r['Close_OT-Air(Time)']?`<div><span>ปิดเวลา</span><strong>${r['Close_OT-Air(Time)']}</strong></div>`:''}
+  if(type==='tenant'){r=gData.tenantReqs[i];title='📋 รายละเอียดคำขอ';}
+  else if(type==='building'){r=gData.buildingAssigns[i];title='🏗️ รายละเอียดการมอบหมาย';}
+  else if(type==='eng'){r=gData.engWork[i];title='🔧 รายละเอียดงาน Engineering';}
+  if(!r){toast('⚠️ ไม่พบข้อมูล');return;}
+  const titleEl=document.querySelector('#mod-detail .mtitle');
+  if(titleEl)titleEl.childNodes[0].textContent=title+' ';
+  const ackVal=r['Admin helpdaesk (Acknowledge/Reject)']||'';
+  const staffVal=r['Staff Name']||'';
+  const mgrVal=r['Manager Consider(Approved/Waiting/Reject)']||'';
+  const openTime=r['Open_OT-Air(Time)']||r['Open_OT-Air(Date)']||'';
+  const closeTime=r['Close_OT-Air(Time)']||r['Close_OT-Air(Date)']||'';
+  const remarkVal=r['Remark']||'';
+  let html2=`<div class="irow">
+    <div><span>เลขที่คำขอ</span><strong>${r['OT-AIR Work Request No.']||'—'}</strong></div>
+    <div><span>วันที่แจ้ง</span><strong>${r['Date']||'—'}</strong></div>
+    <div><span>Building</span><strong>${r['Building']||'—'}</strong></div>
+    <div><span>Space / Unit</span><strong>${r['Space']||'—'}</strong></div>
+    <div><span>Tenant / บริษัท</span><strong>${r['Name']||'—'}</strong></div>
+    <div><span>ประเภทระบบ</span><strong style="font-size:11px">${r['Type_OT-AIR']||'—'}</strong></div>
+    <div><span>วันที่ใช้งาน</span><strong>${r['Start Date']||r['Date']||'—'}</strong></div>
+    <div><span>เวลาเริ่ม</span><strong>${r['Start time']||'—'}</strong></div>
+    <div><span>เวลาสิ้นสุด</span><strong>${r['Finish time']||'—'}</strong></div>
+    <div><span>พื้นที่ (SQM)</span><strong>${r['Area']||'—'} m²</strong></div>
+    <div><span>ผู้แจ้ง</span><strong>${r['Name request']||'—'}</strong></div>
+    <div><span>โทรศัพท์</span><strong>${r['Tel No.']||'—'}</strong></div>
+    ${ackVal?`<div><span>Admin Decision</span><strong>${ackVal}</strong></div>`:''}
+    ${staffVal?`<div><span>ช่างที่รับผิดชอบ</span><strong>${staffVal}</strong></div>`:''}
+    ${r['Code OT Air']?`<div><span>Rate Code</span><strong style="font-size:10px">${r['Code OT Air']}</strong></div>`:''}
+    ${r['Shift']||r['Working Shift']?`<div><span>Shift</span><strong>${r['Shift']||r['Working Shift']||''}</strong></div>`:''}
+    ${mgrVal?`<div><span>Manager Approve</span><strong>${mgrVal}</strong></div>`:''}
+    ${r['Manager Name']?`<div><span>Manager</span><strong>${r['Manager Name']}</strong></div>`:''}
+    ${openTime?`<div><span>เวลาเปิดจริง</span><strong style="color:var(--teal)">${openTime}</strong></div>`:''}
+    ${closeTime?`<div><span>เวลาปิดจริง</span><strong style="color:var(--rose)">${closeTime}</strong></div>`:''}
+    ${r['Status']?`<div><span>สถานะ</span><strong>${r['Status']}</strong></div>`:''}
+  </div>`;
+  if(remarkVal){html2+=`<div style="margin-top:12px;background:#FFFBEB;border-radius:8px;padding:10px;font-size:12px;border-left:3px solid #D97706"><strong>หมายเหตุ:</strong> ${remarkVal}</div>`;}
+  // Timeline
+  html2+=`<div style="margin-top:16px">
+    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">⏱ Timeline การดำเนินการ</div>
+    <div class="tl">
+      <div class="tli"><div class="tldot done"></div><div class="tlt">Tenant แจ้งคำขอ</div><div class="tls">${r['Date']||'—'}</div></div>
+      <div class="tli"><div class="tldot ${ackVal?'done':'pending'}"></div><div class="tlt">Admin Helpdesk ${ackVal||'รอ Acknowledge'}</div><div class="tls">${r['Building Date recording']||'—'}</div></div>
+      <div class="tli"><div class="tldot ${staffVal?'done':'pending'}"></div><div class="tlt">มอบหมายช่าง${staffVal?' → '+staffVal:''}</div><div class="tls">${r['Shift']||''}</div></div>
+      <div class="tli"><div class="tldot ${mgrVal==='Approved'?'done':mgrVal?'pending':''}"></div><div class="tlt">Manager ${mgrVal||'รอ Approve'}</div><div class="tls">${r['Approve (Date/time)']||'—'}</div></div>
+      <div class="tli"><div class="tldot ${openTime?'done':''}"></div><div class="tlt">เปิดระบบ Aircon${openTime?' เวลา '+openTime:' — รอดำเนินการ'}</div></div>
+      <div class="tli"><div class="tldot ${closeTime?'done':''}"></div><div class="tlt">ปิดระบบ Aircon${closeTime?' เวลา '+closeTime:' — รอดำเนินการ'}</div></div>
     </div>
-    ${r['Remark']?`<div style="margin-top:12px;background:#FFFBEB;border-radius:8px;padding:10px;font-size:12px"><strong>หมายเหตุ:</strong> ${r['Remark']}</div>`:''}`;
+  </div>`;
+  document.getElementById('detail-content').innerHTML=html2;
   openMod('mod-detail');
 }
 
 function showDetailDemo(no){
-  toast('📋 ดูรายละเอียด '+no);
+  const demoData={
+    'OT_AIR202661':{
+      'OT-AIR Work Request No.':'OT_AIR202661','Date':'13/6/2569 17:21',
+      'Building':'BTE','Space':'22-004','Name':'2nd Street (Thailand) Co., Ltd.',
+      'Type_OT-AIR':'ระบบปรับอากาศ-อากาศลมเย็น','Start time':'17:30','Finish time':'22:30',
+      'Area':'375','Name request':'Pailin','Tel No.':'0895551234',
+      'Admin helpdaesk (Acknowledge/Reject)':'Acknowledge','Staff Name':'Miss Aron',
+      'Code OT Air':'XXXCH_OT_AIR_BTB_W07N2','Shift':'Day',
+      'Manager Consider(Approved/Waiting/Reject)':'Approved','Manager Name':'Kittanan',
+      'Open_OT-Air(Time)':'17:30','Close_OT-Air(Time)':'22:30','Cal_Actual_Hours':'5.00',
+      'Remark':'จะแจ้งยืนยันเวลา 16.00'
+    },
+    'OT_AIR202662':{
+      'OT-AIR Work Request No.':'OT_AIR202662','Date':'14/6/2569 18:00',
+      'Building':'BTE','Space':'B1-04A','Name':'BB Teahouse Intergroup Co., Ltd.',
+      'Type_OT-AIR':'ระบบปรับอากาศ-อากาศลมเย็น','Start time':'18:00','Finish time':'23:30',
+      'Area':'0','Name request':'Kittanan','Tel No.':'0653921745',
+      'Admin helpdaesk (Acknowledge/Reject)':'','Staff Name':'',
+      'Manager Consider(Approved/Waiting/Reject)':'',
+      'Remark':'เปิดแล้วกรุณาทรแจ้งด้วยนะครับ'
+    }
+  };
+  const r=demoData[no];
+  if(!r){toast('ไม่พบข้อมูล '+no);return;}
+  // push into gData if not exists
+  if(!gData.tenantReqs.find(x=>x['OT-AIR Work Request No.']==='no')){
+    gData.tenantReqs.push(r);
+  }
+  const idx=gData.tenantReqs.findIndex(x=>x['OT-AIR Work Request No.']==='no')||0;
+  showDetail(gData.tenantReqs.length-1,'tenant');
 }
 
 function getStatus(r){
@@ -1331,6 +1748,435 @@ function exportCSV(){
 }
 
 function printReport(){window.print()}
+
+// =========================================
+// DATABASE MODULE
+// =========================================
+let dbData = { staff:[], types:[], levels:[], rates:[], buildings:[], tenants:[] };
+
+async function loadAllDB(){
+  showSync(true);
+  await Promise.all([loadStaffDB(), loadTypeDB(), loadLevelDB(), loadRateDB(), loadBldDB(), loadTenantDB()]);
+  showSync(false);
+  toast('✅ โหลดข้อมูลทั้งหมดเรียบร้อย');
+}
+
+function switchDB(id, btn){
+  document.querySelectorAll('.dbsec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.dbtab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  btn.classList.add('active');
+  // lazy load
+  if(id==='db-staff' && !dbData.staff.length) loadStaffDB();
+  if(id==='db-type' && !dbData.types.length) loadTypeDB();
+  if(id==='db-tenant-level' && !dbData.levels.length) loadLevelDB();
+  if(id==='db-rate' && !dbData.rates.length) loadRateDB();
+  if(id==='db-building' && !dbData.buildings.length) loadBldDB();
+  if(id==='db-tenants' && !dbData.tenants.length) loadTenantDB();
+}
+
+// ---- STAFF ----
+async function loadStaffDB(){
+  const rows = await fetchSheet('Staff Name');
+  if(rows){
+    dbData.staff = rows.slice(1).map(r=>r[0]).filter(Boolean);
+  } else {
+    dbData.staff = ['A','B','C','Attanop','Suttipong','Miss Aron'];
+  }
+  renderStaffList();
+}
+
+function renderStaffList(){
+  const wrap = document.getElementById('staff-list-wrap');
+  if(!dbData.staff.length){wrap.innerHTML='<div style="padding:16px;color:var(--gray);text-align:center">ยังไม่มีข้อมูล</div>';return;}
+  wrap.innerHTML = `<div style="border:1px solid var(--gray3);border-radius:9px;overflow:hidden">
+    ${dbData.staff.map((s,i)=>`
+      <div class="db-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1A56DB,#7E3AF2);
+            display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">
+            ${s.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:13px">${s}</div>
+            <div style="font-size:11px;color:var(--gray)">Engineering Staff</div>
+          </div>
+        </div>
+        <div class="db-actions">
+          <button class="btn btn-o btn-sm" onclick="editStaff(${i})">✏️ แก้ไข</button>
+          <button class="btn btn-r btn-sm" onclick="deleteStaff(${i})">🗑</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function addStaff(){
+  const val = document.getElementById('new-staff').value.trim();
+  if(!val){toast('⚠️ กรุณากรอกชื่อช่าง');return;}
+  if(dbData.staff.includes(val)){toast('⚠️ มีชื่อนี้อยู่แล้ว');return;}
+  dbData.staff.push(val);
+  document.getElementById('new-staff').value='';
+  renderStaffList();
+  // Update dropdowns
+  updateStaffDropdowns();
+  toast('✅ เพิ่มช่าง "'+val+'" เรียบร้อย');
+}
+
+function editStaff(i){
+  const newName = prompt('แก้ไขชื่อช่าง:', dbData.staff[i]);
+  if(!newName || !newName.trim())return;
+  dbData.staff[i] = newName.trim();
+  renderStaffList();
+  updateStaffDropdowns();
+  toast('✅ แก้ไขชื่อช่างเรียบร้อย');
+}
+
+function deleteStaff(i){
+  if(!confirm('ลบช่าง "'+dbData.staff[i]+'" ?'))return;
+  dbData.staff.splice(i,1);
+  renderStaffList();
+  updateStaffDropdowns();
+  toast('🗑 ลบข้อมูลช่างเรียบร้อย');
+}
+
+function updateStaffDropdowns(){
+  const sels=['as-staff','ea-name'];
+  sels.forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML=dbData.staff.map(s=>`<option value="${s}">${s}</option>`).join('');
+    if(cur)sel.value=cur;
+  });
+}
+
+// ---- TYPE OT-AIR ----
+async function loadTypeDB(){
+  const rows = await fetchSheet('Type_OT-AIR');
+  if(rows) dbData.types = rows.slice(1).map(r=>r[0]).filter(Boolean);
+  else dbData.types = ['ระบบปรับอากาศ-อากาศลมเย็น','ระบบปรับอากาศ-น้ำเย็นเท่านั้น','ระบบปรับอากาศ-น้ำระบายความร้อนเท่านั้น'];
+  renderTypeList();
+}
+
+function renderTypeList(){
+  const wrap=document.getElementById('type-list-wrap');
+  wrap.innerHTML=`<div style="border:1px solid var(--gray3);border-radius:9px;overflow:hidden">
+    ${dbData.types.map((t,i)=>`
+      <div class="db-row">
+        <div>${typeTag(t)}&nbsp;<span style="font-size:13px">${t}</span></div>
+        <div class="db-actions">
+          <button class="btn btn-o btn-sm" onclick="editType(${i})">✏️ แก้ไข</button>
+          <button class="btn btn-r btn-sm" onclick="deleteType(${i})">🗑</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function addType(){
+  const val=document.getElementById('new-type').value.trim();
+  if(!val)return;
+  dbData.types.push(val);
+  document.getElementById('new-type').value='';
+  renderTypeList();
+  toast('✅ เพิ่มประเภท OT Air เรียบร้อย');
+}
+
+function editType(i){
+  const n=prompt('แก้ไขประเภท:',dbData.types[i]);
+  if(!n||!n.trim())return;
+  dbData.types[i]=n.trim();
+  renderTypeList();
+  toast('✅ แก้ไขเรียบร้อย');
+}
+
+function deleteType(i){
+  if(!confirm('ลบประเภท "'+dbData.types[i]+'" ?'))return;
+  dbData.types.splice(i,1);
+  renderTypeList();
+  toast('🗑 ลบเรียบร้อย');
+}
+
+// ---- TENANT LEVEL ----
+async function loadLevelDB(){
+  const rows=await fetchSheet('Tenant_Level Charge');
+  if(rows) dbData.levels=rows.slice(1).map(r=>r[0]).filter(Boolean);
+  else dbData.levels=['Normal','VIP','VVIP'];
+  const wrap=document.getElementById('tenant-level-wrap');
+  const colors={'Normal':'t-green','VIP':'t-blue','VVIP':'t-purple'};
+  wrap.innerHTML=`<div style="border:1px solid var(--gray3);border-radius:9px;overflow:hidden">
+    ${dbData.levels.map((l,i)=>`
+      <div class="db-row">
+        <div><span class="tag ${colors[l]||'t-gray'}">${l}</span>
+          <span style="font-size:12px;color:var(--gray);margin-left:8px">Tenant Level Charge</span></div>
+        <div class="db-actions">
+          <button class="btn btn-o btn-sm" onclick="editLevel(${i})">✏️ แก้ไข</button>
+        </div>
+      </div>`).join('')}
+  </div>
+  <div style="padding:10px;font-size:11px;color:var(--gray)">ℹ️ ระดับ Tenant กำหนดประเภทการคิดค่าบริการ</div>`;
+}
+
+function editLevel(i){
+  const n=prompt('แก้ไข Level:',dbData.levels[i]);
+  if(!n||!n.trim())return;
+  dbData.levels[i]=n.trim();
+  loadLevelDB();
+  toast('✅ แก้ไข Level เรียบร้อย');
+}
+
+// ---- RATE CODE ----
+async function loadRateDB(){
+  const rows=await fetchSheet('Code_Rate Charge');
+  if(rows){
+    dbData.rates=parseSheet(rows);
+    allRateCodes=dbData.rates;
+  }
+  renderRateDB(dbData.rates);
+  document.getElementById('rate-count').textContent=dbData.rates.length+' รายการ';
+}
+
+function filterRateDB(){
+  const q=document.getElementById('rate-search').value.toLowerCase();
+  const bld=document.getElementById('rate-filter-bld').value;
+  let f=dbData.rates;
+  if(bld)f=f.filter(r=>r['Building name']===bld);
+  if(q)f=f.filter(r=>(r['Code OT Air']||'').toLowerCase().includes(q)||(r['Description']||'').toLowerCase().includes(q));
+  renderRateDB(f);
+}
+
+function renderRateDB(data){
+  const wrap=document.getElementById('rate-db-wrap');
+  if(!data.length){wrap.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray)">ไม่พบข้อมูล</div>';return;}
+  const shown=data.slice(0,50);
+  wrap.innerHTML=`<div class="tw"><table>
+    <thead><tr>
+      <th>Building</th><th>Code OT Air</th><th>Description</th>
+      <th>Min (฿)</th><th>Monthly (฿)</th><th>Hourly (฿)</th><th>Per M² (฿)</th><th></th>
+    </tr></thead>
+    <tbody>${shown.map((r,i)=>`<tr>
+      <td><span class="tag t-navy">${r['Building name']||'—'}</span></td>
+      <td style="font-size:10px;color:var(--blue);font-weight:700">${r['Code OT Air']||'—'}</td>
+      <td style="font-size:11px;max-width:200px">${r['Description']||'—'}</td>
+      <td>${r['Minimum charge(THB)']?Number(r['Minimum charge(THB)']).toLocaleString():'—'}</td>
+      <td>${r['Addtional charge(THB/Month)']?Number(r['Addtional charge(THB/Month)']).toLocaleString():'—'}</td>
+      <td>${r['Addtional charge(THB/Hour)']?Number(r['Addtional charge(THB/Hour)']).toLocaleString():'—'}</td>
+      <td>${r['Charge per Area(THB/M2)']?Number(r['Charge per Area(THB/M2)']).toLocaleString():'—'}</td>
+      <td><button class="btn btn-o btn-sm" onclick="editRate(${i})">✏️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  ${data.length>50?`<div style="text-align:center;padding:8px;font-size:11px;color:var(--gray)">แสดง 50/${data.length} รายการ — ค้นหาเพื่อกรอง</div>`:''}`;
+}
+
+function openAddRate(){
+  document.getElementById('ar-code').value='';
+  document.getElementById('ar-desc').value='';
+  document.getElementById('ar-minchg').value='0';
+  document.getElementById('ar-monthly').value='0';
+  document.getElementById('ar-hourly').value='0';
+  document.getElementById('ar-area').value='0';
+  openMod('mod-add-rate');
+}
+
+function editRate(i){
+  const r=dbData.rates[i];if(!r)return;
+  document.getElementById('ar-bld').value=r['Building name']||'BTE';
+  document.getElementById('ar-level').value=r['Tenant_Level Charge']||'Normal';
+  document.getElementById('ar-code').value=r['Code OT Air']||'';
+  document.getElementById('ar-desc').value=r['Description']||'';
+  document.getElementById('ar-type').value=r['Type OT.AIR']||'Air condition';
+  document.getElementById('ar-mincond').value=r['Minimum condition']||'';
+  document.getElementById('ar-minchg').value=r['Minimum charge(THB)']||'0';
+  document.getElementById('ar-monthly').value=r['Addtional charge(THB/Month)']||'0';
+  document.getElementById('ar-hourly').value=r['Addtional charge(THB/Hour)']||'0';
+  document.getElementById('ar-area').value=r['Charge per Area(THB/M2)']||'0';
+  openMod('mod-add-rate');
+}
+
+function saveRateCode(){
+  const code=document.getElementById('ar-code').value.trim();
+  if(!code){toast('⚠️ กรุณากรอก Code OT Air');return;}
+  const newRate={
+    'Building name':document.getElementById('ar-bld').value,
+    'Tenant_Level Charge':document.getElementById('ar-level').value,
+    'Code OT Air':code,
+    'Description':document.getElementById('ar-desc').value,
+    'Type OT.AIR':document.getElementById('ar-type').value,
+    'Minimum condition':document.getElementById('ar-mincond').value,
+    'Minimum charge(THB)':document.getElementById('ar-minchg').value,
+    'Addtional charge(THB/Month)':document.getElementById('ar-monthly').value,
+    'Addtional charge(THB/Hour)':document.getElementById('ar-hourly').value,
+    'Charge per Area(THB/M2)':document.getElementById('ar-area').value,
+  };
+  const idx=dbData.rates.findIndex(r=>r['Code OT Air']===code);
+  if(idx>=0)dbData.rates[idx]=newRate;
+  else dbData.rates.push(newRate);
+  allRateCodes=dbData.rates;
+  renderRateDB(dbData.rates);
+  document.getElementById('rate-count').textContent=dbData.rates.length+' รายการ';
+  closeMod('mod-add-rate');
+  toast('✅ บันทึก Rate Code "'+code+'" เรียบร้อย');
+}
+
+// ---- BUILDING/UNIT ----
+async function loadBldDB(){
+  const rows=await fetchSheet('Building Name');
+  if(rows) dbData.buildings=parseSheet(rows);
+  renderBldDB(dbData.buildings);
+  document.getElementById('bld-count').textContent=dbData.buildings.length+' Units';
+}
+
+function filterBldDB(){
+  const q=document.getElementById('bld-search').value.toLowerCase();
+  const bld=document.getElementById('bld-filter').value;
+  let f=dbData.buildings;
+  if(bld)f=f.filter(r=>r['Building Name']===bld);
+  if(q)f=f.filter(r=>(r['Unit']||'').toLowerCase().includes(q)||(r['Building Name']||'').toLowerCase().includes(q));
+  renderBldDB(f);
+}
+
+function renderBldDB(data){
+  const wrap=document.getElementById('bld-db-wrap');
+  if(!data.length){wrap.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray)">ไม่พบข้อมูล</div>';return;}
+  const shown=data.slice(0,60);
+  wrap.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Building</th><th>Floor</th><th>Unit</th><th>Type</th><th>SQM</th><th>Common Area</th><th></th></tr></thead>
+    <tbody>${shown.map((r,i)=>`<tr>
+      <td><span class="tag t-navy">${r['Building Name']||'—'}</span></td>
+      <td>${r['Floor']||'—'}</td>
+      <td><strong>${r['Unit']||'—'}</strong></td>
+      <td><span class="tag t-gray">${r['Unit Type']||'—'}</span></td>
+      <td>${r['SQM']||'—'} m²</td>
+      <td>${r['Common Area']||'0'} m²</td>
+      <td><button class="btn btn-o btn-sm" onclick="editUnit(${i})">✏️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  ${data.length>60?`<div style="text-align:center;padding:8px;font-size:11px;color:var(--gray)">แสดง 60/${data.length} รายการ</div>`:''}`;
+}
+
+function openAddUnit(){
+  ['au-floor','au-unit','au-sqm','au-common'].forEach(id=>document.getElementById(id).value='');
+  openMod('mod-add-unit');
+}
+
+function editUnit(i){
+  const r=dbData.buildings[i];if(!r)return;
+  document.getElementById('au-bld').value=r['Building Name']||'BTE';
+  document.getElementById('au-floor').value=r['Floor']||'';
+  document.getElementById('au-unit').value=r['Unit']||'';
+  document.getElementById('au-type').value=r['Unit Type']||'Office';
+  document.getElementById('au-sqm').value=r['SQM']||'';
+  document.getElementById('au-common').value=r['Common Area']||'0';
+  openMod('mod-add-unit');
+}
+
+function saveUnit(){
+  const unit=document.getElementById('au-unit').value.trim();
+  if(!unit){toast('⚠️ กรุณากรอก Unit No.');return;}
+  const newUnit={
+    'Building Name':document.getElementById('au-bld').value,
+    'Floor':document.getElementById('au-floor').value,
+    'Unit':unit,
+    'Unit Type':document.getElementById('au-type').value,
+    'SQM':document.getElementById('au-sqm').value,
+    'Common Area':document.getElementById('au-common').value,
+  };
+  const idx=dbData.buildings.findIndex(r=>r['Unit']===unit&&r['Building Name']===newUnit['Building Name']);
+  if(idx>=0)dbData.buildings[idx]=newUnit;
+  else dbData.buildings.push(newUnit);
+  renderBldDB(dbData.buildings);
+  document.getElementById('bld-count').textContent=dbData.buildings.length+' Units';
+  closeMod('mod-add-unit');
+  toast('✅ บันทึก Unit "'+unit+'" เรียบร้อย');
+}
+
+// ---- TENANTS ----
+async function loadTenantDB(){
+  const rows=await fetchSheet('Tenants list');
+  if(rows) dbData.tenants=parseSheet(rows);
+  renderTenantDB(dbData.tenants);
+  document.getElementById('tenant-count').textContent=dbData.tenants.length+' รายการ';
+}
+
+function filterTenantDB(){
+  const q=document.getElementById('tenant-search').value.toLowerCase();
+  const bld=document.getElementById('tenant-filter-bld').value;
+  let f=dbData.tenants;
+  if(bld)f=f.filter(r=>r['Building']===bld);
+  if(q)f=f.filter(r=>(r['Name']||'').toLowerCase().includes(q)||(r['Tenant_code']||r['Code']||'').toLowerCase().includes(q));
+  renderTenantDB(f);
+}
+
+function renderTenantDB(data){
+  const wrap=document.getElementById('tenant-db-wrap');
+  if(!data.length){wrap.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray)">ไม่พบข้อมูล</div>';return;}
+  const shown=data.slice(0,50);
+  const keys=Object.keys(data[0]||{});
+  const nameKey=keys.find(k=>k.toLowerCase().includes('name'))||keys[1]||'Name';
+  const codeKey=keys.find(k=>k.toLowerCase().includes('code'))||keys[0]||'Code';
+  const bldKey=keys.find(k=>k.toLowerCase().includes('build'))||'Building';
+  const spaceKey=keys.find(k=>k.toLowerCase().includes('space'))||'Space';
+  wrap.innerHTML=`<div class="tw"><table>
+    <thead><tr><th>Code</th><th>ชื่อบริษัท</th><th>Building</th><th>Space</th><th>SQM</th><th>Status</th><th></th></tr></thead>
+    <tbody>${shown.map((r,i)=>`<tr>
+      <td style="font-size:10px;color:var(--purple)">${r[codeKey]||r['Tenant_code']||'—'}</td>
+      <td style="font-size:12px"><strong>${r[nameKey]||r['Name']||'—'}</strong></td>
+      <td><span class="tag t-navy">${r[bldKey]||r['Building']||'—'}</span></td>
+      <td>${r[spaceKey]||r['Space']||'—'}</td>
+      <td>${r['Area']||r['SQM']||'—'}</td>
+      <td>${r['Status']?`<span class="tag ${r['Status']==='Current'?'t-green':'t-gray'}">${r['Status']}</span>`:'—'}</td>
+      <td><button class="btn btn-o btn-sm" onclick="editTenant(${i})">✏️</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>
+  ${data.length>50?`<div style="text-align:center;padding:8px;font-size:11px;color:var(--gray)">แสดง 50/${data.length} รายการ — ค้นหาเพื่อกรอง</div>`:''}`;
+}
+
+function openAddTenant(){
+  ['at-code','at-name','at-space','at-sqm','at-agree'].forEach(id=>document.getElementById(id).value='');
+  openMod('mod-add-tenant');
+}
+
+function editTenant(i){
+  const r=dbData.tenants[i];if(!r)return;
+  const keys=Object.keys(r);
+  const nameKey=keys.find(k=>k.toLowerCase().includes('name'))||'Name';
+  const codeKey=keys.find(k=>k.toLowerCase().includes('code'))||'Code';
+  document.getElementById('at-code').value=r[codeKey]||r['Tenant_code']||'';
+  document.getElementById('at-bld').value=r['Building']||'BTE';
+  document.getElementById('at-name').value=r[nameKey]||r['Name']||'';
+  document.getElementById('at-space').value=r['Space']||'';
+  document.getElementById('at-sqm').value=r['Area']||r['SQM']||'';
+  document.getElementById('at-level').value=r['Tenant_Level Charge']||r['Level']||'Normal';
+  document.getElementById('at-agree').value=r['Agreement']||'';
+  document.getElementById('at-status').value=r['Status']||'Current';
+  openMod('mod-add-tenant');
+}
+
+function saveTenant(){
+  const name=document.getElementById('at-name').value.trim();
+  if(!name){toast('⚠️ กรุณากรอกชื่อบริษัท');return;}
+  const newT={
+    'Tenant_code':document.getElementById('at-code').value,
+    'Building':document.getElementById('at-bld').value,
+    'Name':name,
+    'Space':document.getElementById('at-space').value,
+    'Area':document.getElementById('at-sqm').value,
+    'Tenant_Level Charge':document.getElementById('at-level').value,
+    'Agreement':document.getElementById('at-agree').value,
+    'Status':document.getElementById('at-status').value,
+  };
+  const code=newT['Tenant_code'];
+  const idx=code?dbData.tenants.findIndex(r=>r['Tenant_code']===code):-1;
+  if(idx>=0)dbData.tenants[idx]=newT;
+  else dbData.tenants.push(newT);
+  renderTenantDB(dbData.tenants);
+  document.getElementById('tenant-count').textContent=dbData.tenants.length+' รายการ';
+  closeMod('mod-add-tenant');
+  toast('✅ บันทึก Tenant "'+name+'" เรียบร้อย');
+}
+
+// Load DB when admin enters DB tab
+const _origSwitchTab = switchTab;
+
 </script>
 </body>
 </html>
