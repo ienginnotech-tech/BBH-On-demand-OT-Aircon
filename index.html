@@ -1333,7 +1333,7 @@ function updateAllStats(){
   se('bs-ok',bd.filter(r=>r['Manager Consider(Approved/Waiting/Reject)']==='Approved').length);
   se('bs-total',bd.length);
   // Manager
-  se('ms-pending',bd.filter(r=>r['Admin helpdaesk (Acknowledge/Reject)']&&!r['Manager Consider(Approved/Waiting/Reject)']).length);
+  se('ms-pending',bd.filter(r=>!r['Manager Consider(Approved/Waiting/Reject)']).length);
   se('ms-approved',bd.filter(r=>r['Manager Consider(Approved/Waiting/Reject)']==='Approved').length);
   se('ms-rejected',bd.filter(r=>r['Manager Consider(Approved/Waiting/Reject)']==='Reject').length);
   se('ms-total',bd.length);
@@ -1411,20 +1411,35 @@ function renderManagerTable(){
   const wrap = document.getElementById('manager-table-wrap');
   if(!data.length){wrap.innerHTML=emptyState('ไม่มีข้อมูล');return;}
   wrap.innerHTML=`<div class="table-wrap"><table>
-    <thead><tr><th>เลขที่</th><th>Tenant</th><th>Bld</th><th>Space</th><th>เวลา</th><th>ช่าง</th><th>สถานะ</th><th></th></tr></thead>
+    <thead><tr><th>เลขที่</th><th>Tenant</th><th>Bld</th><th>Space</th><th>วันที่</th><th>เวลา</th><th>ช่าง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
     <tbody>${data.map((r,i)=>{
       const mgr=r['Manager Consider(Approved/Waiting/Reject)'];
       const ack=r['Admin helpdaesk (Acknowledge/Reject)'];
-      const canApprove=ack&&!mgr;
+      // Show approve button if: not yet approved/rejected (regardless of ack status)
+      const canApprove = mgr!=='Approved' && mgr!=='Reject';
+      const statusEl = mgr==='Approved'
+        ? `<span class="tag t-green">✓ Approved</span>`
+        : mgr==='Reject'
+        ? `<span class="tag t-red">✕ Rejected</span>`
+        : ack
+        ? `<span class="tag t-amber">⏳ รออนุมัติ</span>`
+        : `<span class="tag t-amber">⏳ รออนุมัติ</span>`;
+      const actionEl = canApprove
+        ? `<div style="display:flex;gap:4px">
+            <button class="btn btn-g btn-sm" onclick="doApprove(${i},'Approved')">✓ อนุมัติ</button>
+            <button class="btn btn-r btn-sm" onclick="doApprove(${i},'Reject')">✕ ปฏิเสธ</button>
+           </div>`
+        : `<button class="btn btn-o btn-sm" onclick="showDetail(${i},'building')">ดูรายละเอียด</button>`;
       return `<tr>
         <td><strong style="color:var(--accent)">${r['OT-AIR Work Request No.']||'—'}</strong></td>
-        <td style="font-size:11px">${r['Name']||'—'}</td>
+        <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['Name']||'—'}</td>
         <td>${bldTag(r['Building'])}</td>
         <td><strong>${r['Space']||'—'}</strong></td>
-        <td style="font-size:11px;white-space:nowrap">${r['Start time']||'—'}–${r['Finish time']||'—'}</td>
-        <td>${r['Staff Name']||'—'}</td>
-        <td>${mgr==='Approved'?`<span class="tag t-green">✓ Approved</span>`:mgr==='Reject'?`<span class="tag t-red">✕ Rejected</span>`:ack?`<span class="tag t-amber">⏳ รออนุมัติ</span>`:`<span class="tag t-gray">รอ Ack</span>`}</td>
-        <td>${canApprove?`<button class="btn btn-g btn-sm" onclick="doApprove(${i},'Approved')">✓ อนุมัติ</button><button class="btn btn-r btn-sm" style="margin-left:3px" onclick="doApprove(${i},'Reject')">✕</button>`:`<button class="btn btn-o btn-sm" onclick="showDetail(${i},'building')">ดู</button>`}</td>
+        <td style="font-size:11px;color:var(--text2)">${fmtDate(r['Date'])}</td>
+        <td style="font-size:11px;white-space:nowrap">${r['Start time']||'—'} – ${r['Finish time']||'—'}</td>
+        <td>${r['Staff Name']?`<span class="tag t-purple">${r['Staff Name']}</span>`:'—'}</td>
+        <td>${statusEl}</td>
+        <td style="white-space:nowrap">${actionEl}</td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>`;
