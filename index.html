@@ -1288,6 +1288,11 @@ function filterByBuilding(arr){
 }
 
 function renderAllModules(){
+  // Deduplicate ทุก dataset ก่อน render
+  gData.tenantReqs      = dedup(gData.tenantReqs);
+  gData.buildingAssigns = dedup(gData.buildingAssigns);
+  gData.engWork         = dedup(gData.engWork);
+  gData.csReport        = dedup(gData.csReport);
   renderTenantTable();
   renderBuildingTable();
   renderManagerTable();
@@ -1332,8 +1337,8 @@ function updateAllStats(){
   // CS
   se('cs-total',cd.length);
   let chrs=0,cost=0;
-  cd.forEach(r=>{chrs+=parseFloat(r['Convers time(hour)']||0);cost+=parseFloat((r['Total Cost OT.Air(Rate Charge+Area)_THB']||'0').replace(/,/g,''));});
-  se('cs-hrs',chrs.toFixed(1)+' ชม.');
+  cd.forEach(r=>{chrs+=parseFloat(r['Convers time(hour)']||0)||0;cost+=parseFloat(String(r['Total Cost OT.Air(Rate Charge+Area)_THB']||'0').replace(/,/g,''))||0;});
+  se('cs-hrs',chrs.toFixed(2)+' ชม.');
   se('cs-cost','฿'+cost.toLocaleString());
   // Users
   const pu=pendingUsers();
@@ -1346,6 +1351,20 @@ function updateAllStats(){
 // ============================================================
 // RENDER TABLES
 // ============================================================
+
+// ============================================================
+// DEDUPLICATE — ลบแถวซ้ำ ใช้แถวสุดท้ายของแต่ละ reqNo
+// ============================================================
+function dedup(arr){
+  if(!arr||!arr.length) return arr;
+  const map=new Map();
+  arr.forEach(function(r){
+    const no=r['OT-AIR Work Request No.'];
+    if(no) map.set(no,r); // แถวหลังทับแถวก่อน → ได้แถวล่าสุด
+  });
+  return Array.from(map.values());
+}
+
 function renderTenantTable(){
   const data = filterByBuilding(gData.tenantReqs);
   const wrap = document.getElementById('tenant-table-wrap');
@@ -1436,7 +1455,7 @@ function renderEngTable(){
         <td style="font-size:10px;color:var(--accent)">${(r['Code OT Air']||'—').replace('XXXCH_OT_AIR_','')}</td>
         <td style="color:var(--green);font-weight:600">${r['Open_OT-Air(Time)']||'—'}</td>
         <td style="color:var(--rose);font-weight:600">${r['Close_OT-Air(Time)']||'—'}</td>
-        <td>${r['Cal_Actual_Hours']?`<strong style="color:var(--green)">${r['Cal_Actual_Hours']} ชม.</strong>`:'—'}</td>
+        <td>${(r['Cal_Actual_Hours']&&parseFloat(r['Cal_Actual_Hours'])>0)?`<strong style="color:var(--green)">${parseFloat(r['Cal_Actual_Hours']).toFixed(2)} ชม.</strong>`:(r['Open_OT-Air(Time)']&&r['Close_OT-Air(Time)'])?`<strong style="color:var(--green)">${((timeToMin(r['Close_OT-Air(Time)'])-timeToMin(r['Open_OT-Air(Time)'])+1440)%1440/60).toFixed(2)} ชม.</strong>`:'—'}</td>
         <td>${stTag}</td>
         <td>${action}</td>
       </tr>`;
@@ -1456,7 +1475,7 @@ function renderCSTable(){
       <td>${bldTag(r['Building'])}</td>
       <td><strong>${r['Space']||'—'}</strong></td>
       <td style="font-size:10px;color:var(--accent)">${(r['Code OT Air_Fee']||r['Code OT Air']||'—').replace('XXXCH_OT_AIR_','')}</td>
-      <td>${r['Convers time(hour)']||'—'} ชม.</td>
+      <td>${parseFloat(r['Convers time(hour)']||0).toFixed(2)} ชม.</td>
       <td>${r['Cal_Rent Area(SQ.M)']||'—'} m²</td>
       <td style="color:var(--amber)">฿${num(r['Cal_Cost Minimum charge(THB)'])}</td>
       <td style="color:var(--accent)">฿${num(r['Cal_ Cost Area charge OT-AIR(THB)'])}</td>
@@ -1621,7 +1640,7 @@ async function submitRequest(){
     }
     _submitting=false; if(sb){sb.disabled=false;sb.textContent='📤 ส่งคำขอ';}
   }
-  const reqNo='OT_AIR'+Date.now().toString().slice(-6);
+  const reqNo='OT_AIR'+new Date().getFullYear()+(gData.tenantReqs.length+1);
   gData.tenantReqs.push({'OT-AIR Work Request No.':reqNo,'Date':nowStr(),'Type_OT-AIR':type,'Building':bld,'Space':unit,'Name':tenantInfo['Name']||'','Start time':start,'Finish time':end,'Name request':name,'Tel No.':tel,'Status':'Current','Remark':remark});
   gData.buildingAssigns.push(gData.tenantReqs[gData.tenantReqs.length-1]);
   gData.engWork.push(gData.tenantReqs[gData.tenantReqs.length-1]);
