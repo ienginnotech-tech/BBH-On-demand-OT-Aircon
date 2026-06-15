@@ -1288,12 +1288,34 @@ async function loadAllLive(){
     allRateCodes    = dbData.rates;
   }
   if(ops){
-    // Replace entirely — do NOT merge with existing gData
     gData.tenantReqs      = ops.tenantReqs      || [];
     gData.buildingAssigns = ops.buildingAssigns  || [];
     gData.engWork         = ops.engWork          || [];
     gData.csReport        = ops.csReport         || [];
+    // Sync status จาก buildingAssigns → tenantReqs
+    syncStatusToTenant();
   }
+}
+
+function syncStatusToTenant(){
+  // สร้าง map reqNo → buildingAssigns row
+  const bldMap = {};
+  gData.buildingAssigns.forEach(b => {
+    const no = b['OT-AIR Work Request No.'];
+    if(no) bldMap[no] = b;
+  });
+  // อัปเดต tenantReqs ด้วยสถานะล่าสุดจาก buildingAssigns
+  gData.tenantReqs.forEach(t => {
+    const no = t['OT-AIR Work Request No.'];
+    if(no && bldMap[no]){
+      const b = bldMap[no];
+      t['Manager Consider(Approved/Waiting/Reject)'] = b['Manager Consider(Approved/Waiting/Reject)'] || t['Manager Consider(Approved/Waiting/Reject)'];
+      t['Admin helpdaesk (Acknowledge/Reject)']      = b['Admin helpdaesk (Acknowledge/Reject)']      || t['Admin helpdaesk (Acknowledge/Reject)'];
+      t['Staff Name']    = b['Staff Name']    || t['Staff Name'];
+      t['Code OT Air']   = b['Code OT Air']   || t['Code OT Air'];
+      t['Manager Name']  = b['Manager Name']  || t['Manager Name'];
+    }
+  });
 }
 
 function filterByBuilding(arr){
@@ -1519,8 +1541,12 @@ async function doAck(i){
   const r=gData.buildingAssigns[i]; if(!r)return;
   r['Admin helpdaesk (Acknowledge/Reject)']='Acknowledge';
   r['Building Date recording']=nowStr();
-  if(USE_LIVE_API) await apiGET({action:'acknowledge',reqNo:r['OT-AIR Work Request No.'],decision:'Acknowledge'});
-  renderBuildingTable(); updateAllStats();
+  // Sync กลับ tenantReqs
+  const no=r['OT-AIR Work Request No.'];
+  const tIdx=gData.tenantReqs.findIndex(t=>t['OT-AIR Work Request No.']===''+no);
+  if(tIdx>=0) gData.tenantReqs[tIdx]['Admin helpdaesk (Acknowledge/Reject)']='Acknowledge';
+  if(USE_LIVE_API) await apiGET({action:'acknowledge',reqNo:no,decision:'Acknowledge'});
+  renderBuildingTable(); renderTenantTable(); updateAllStats();
   setTimeout(()=>{doAssign(i);},300);
   toast('✅ Acknowledge — กรุณามอบหมายช่าง');
 }
@@ -1579,8 +1605,14 @@ async function submitAssign(){
     const eIdx=gData.engWork.findIndex(r=>r['OT-AIR Work Request No.']==='req');
     if(eIdx>=0){gData.engWork[eIdx]['Staff Name']=staff;gData.engWork[eIdx]['Shift']=shift;gData.engWork[eIdx]['Code OT Air']=code;}
   }
+  // Sync กลับ tenantReqs ด้วย
+  const tIdx2=gData.tenantReqs.findIndex(t=>t['OT-AIR Work Request No.']===''+req);
+  if(tIdx2>=0){
+    gData.tenantReqs[tIdx2]['Staff Name']=staff;
+    gData.tenantReqs[tIdx2]['Code OT Air']=code;
+  }
   if(USE_LIVE_API) await apiGET({action:'assign',data:encodeURIComponent(JSON.stringify({reqNo:req,staffName:staff,shift,codeOtAir:code}))});
-  renderBuildingTable(); renderEngTable(); updateAllStats();
+  renderBuildingTable(); renderEngTable(); renderTenantTable(); updateAllStats();
   closeMod('mod-assign');
   toast('✅ มอบหมาย '+req+' → '+staff+(USE_LIVE_API?' (Sync แล้ว)':''));
 }
@@ -1592,9 +1624,17 @@ async function doApprove(i,decision){
   const r=gData.buildingAssigns[i]; if(!r)return;
   r['Manager Consider(Approved/Waiting/Reject)']=decision;
   r['Manager Name']=currentUser;
-  if(USE_LIVE_API) await apiGET({action:'managerApprove',data:encodeURIComponent(JSON.stringify({reqNo:r['OT-AIR Work Request No.'],decision,managerName:currentUser}))});
-  renderManagerTable(); renderBuildingTable(); updateAllStats();
-  toast(decision==='Approved'?'✅ อนุมัติเรียบร้อย':'❌ ปฏิเสธคำขอแล้ว');
+  r['Approve (Date/time)']=nowStr();
+  // Sync กลับ tenantReqs ด้วยทันที
+  const no = r['OT-AIR Work Request No.'];
+  const tIdx = gData.tenantReqs.findIndex(t=>t['OT-AIR Work Request No.']===''+no);
+  if(tIdx>=0){
+    gData.tenantReqs[tIdx]['Manager Consider(Approved/Waiting/Reject)']=decision;
+    gData.tenantReqs[tIdx]['Manager Name']=currentUser;
+  }
+  if(USE_LIVE_API) await apiGET({action:'managerApprove',data:encodeURIComponent(JSON.stringify({reqNo:no,decision,managerName:currentUser}))});
+  renderManagerTable(); renderBuildingTable(); renderTenantTable(); updateAllStats();
+  toast(decision==='Approved'?'✅ อนุมัติเรียบร้อย — สถานะ Tenant อัปเดตแล้ว':'❌ ปฏิเสธคำขอแล้ว');
 }
 
 // ============================================================
@@ -2190,12 +2230,18 @@ function nowStr(){return new Date().toLocaleString('th-TH');}
 function timeToMin(t){if(!t)return 0;const p=String(t).split(':');return parseInt(p[0]||0)*60+parseInt(p[1]||0);}
 
 function getStatus(r){
-  const mgr=r['Manager Consider(Approved/Waiting/Reject)'];
-  const ack=r['Admin helpdaesk (Acknowledge/Reject)'];
-  if(mgr==='Approved')return'approved';
-  if(mgr==='Reject')return'rejected';
-  if(ack)return'acknowledged';
-  return'pending';
+  // ก่อนอ่าน status จาก row ตัวเอง ให้หาข้อมูลล่าสุดจาก buildingAssigns ก่อน
+  const reqNo = r['OT-AIR Work Request No.'];
+  const bldRow = reqNo
+    ? gData.buildingAssigns.find(b => b['OT-AIR Work Request No.'] === reqNo)
+    : null;
+  const src = bldRow || r; // ใช้ buildingAssigns ถ้าเจอ ไม่งั้นใช้ row เดิม
+  const mgr = src['Manager Consider(Approved/Waiting/Reject)'];
+  const ack = src['Admin helpdaesk (Acknowledge/Reject)'];
+  if(mgr==='Approved') return 'approved';
+  if(mgr==='Reject')   return 'rejected';
+  if(ack)              return 'acknowledged';
+  return 'pending';
 }
 
 function statusTag(s){
