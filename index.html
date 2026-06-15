@@ -453,11 +453,7 @@ tbody tr:hover td{background:var(--surface2)}
         <option value="building-BTB">Building Admin — BTB</option>
         <option value="building-UBCII">Building Admin — UBCII</option>
       </optgroup>
-      <optgroup label="✅ Manager / Approve">
-        <option value="manager-BTE">Manager — BTE</option>
-        <option value="manager-BTB">Manager — BTB</option>
-        <option value="manager-UBCII">Manager — UBCII</option>
-      </optgroup>
+
       <optgroup label="🔧 Engineering">
         <option value="eng-BTE">Engineering — BTE</option>
         <option value="eng-BTB">Engineering — BTB</option>
@@ -473,8 +469,7 @@ tbody tr:hover td{background:var(--surface2)}
     <div class="auth-divider">หรือ</div>
     <button class="auth-btn secondary" onclick="showScreen('register')">ลงทะเบียนผู้ใช้ใหม่</button>
     <div style="text-align:center;margin-top:16px;font-size:10px;color:var(--text3)">
-      Demo: tenant-BTE=bte123 | building-BTE=bldBTE | manager-BTE=mgrBTE<br>
-      eng-BTE=engBTE | cs=cs@admin | admin=admin999
+      Demo: tenant-BTE=bte123 | building-BTE=bldBTE | eng-BTE=engBTE | cs=cs@admin
     </div>
   </div>
 </div>
@@ -485,7 +480,7 @@ tbody tr:hover td{background:var(--surface2)}
     <div class="auth-brand">
       <div class="auth-logo">📝</div>
       <h1>ลงทะเบียน</h1>
-      <p>ขอสิทธิ์เข้าใช้งาน DB Haven OT Aircon</p>
+      <p>ขอสิทธิ์เข้าใช้งาน BBH OT Aircon OT Aircon</p>
     </div>
     <div class="auth-err" id="reg-err"></div>
     <div class="form-grid" style="gap:10px">
@@ -547,7 +542,7 @@ tbody tr:hover td{background:var(--surface2)}
       <div class="sidebar-brand">
         <div class="sidebar-logo">❄️</div>
         <div class="sidebar-brand-text">
-          <h2>DB Haven</h2>
+          <h2>BBH OT Aircon</h2>
           <p id="sb-building">OT Aircon System</p>
         </div>
       </div>
@@ -572,7 +567,7 @@ tbody tr:hover td{background:var(--surface2)}
         <div class="topbar-left">
           <button class="hamburger" onclick="toggleSidebar()">☰</button>
           <div>
-            <div class="page-title" id="topbar-title">DB Haven</div>
+            <div class="page-title" id="topbar-title">BBH OT Aircon</div>
             <div class="page-sub" id="topbar-sub">On-demand OT Aircon</div>
           </div>
         </div>
@@ -636,6 +631,15 @@ tbody tr:hover td{background:var(--surface2)}
             <div class="card-header"><div class="card-title"><div class="card-title-icon">📥</div>คำขอ OT ทั้งหมด</div></div>
             <div id="building-table-wrap"><div class="loading"><span class="spinner"></span>กำลังโหลด...</div></div>
           </div>
+          <!-- Manager Approve section in Building page -->
+          <div class="card" id="approve-card">
+            <div class="card-header">
+              <div class="card-title"><div class="card-title-icon">✅</div>Manager Approve</div>
+              <div style="font-size:11px;color:var(--text2)">อนุมัติ / ปฏิเสธ คำขอ OT Air</div>
+            </div>
+            <div id="manager-table-wrap"><div class="loading"><span class="spinner"></span>กำลังโหลด...</div></div>
+          </div>
+
           <div class="card">
             <div class="card-header"><div class="card-title"><div class="card-title-icon">💰</div>Rate Code Reference</div>
               <div style="display:flex;gap:6px">
@@ -648,23 +652,7 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
         </div>
 
-        <!-- PAGE: MANAGER -->
-        <div class="page" id="page-manager">
-          <div class="sh">
-            <div><div class="sh-title">✅ Manager Approve</div>
-            <div class="sh-sub">อนุมัติ / ปฏิเสธ คำขอ OT Air</div></div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-card"><div class="stat-num" style="color:var(--amber)" id="ms-pending">—</div><div class="stat-label">รออนุมัติ</div></div>
-            <div class="stat-card"><div class="stat-num" style="color:var(--green)" id="ms-approved">—</div><div class="stat-label">อนุมัติแล้ว</div></div>
-            <div class="stat-card"><div class="stat-num" style="color:var(--rose)" id="ms-rejected">—</div><div class="stat-label">ปฏิเสธ</div></div>
-            <div class="stat-card"><div class="stat-num" style="color:var(--accent)" id="ms-total">—</div><div class="stat-label">ทั้งหมด</div></div>
-          </div>
-          <div class="card">
-            <div class="card-header"><div class="card-title"><div class="card-title-icon">✅</div>รายการรออนุมัติ</div></div>
-            <div id="manager-table-wrap"><div class="loading"><span class="spinner"></span>กำลังโหลด...</div></div>
-          </div>
-        </div>
+<!-- Manager page removed -->
 
         <!-- PAGE: ENGINEERING -->
         <div class="page" id="page-eng">
@@ -828,7 +816,7 @@ tbody tr:hover td{background:var(--surface2)}
                 <!-- THEME -->
                 <div class="settings-panel active" id="s-theme">
                   <div style="font-size:13px;font-weight:700;margin-bottom:4px">🎨 เลือก Theme</div>
-                  <div style="font-size:11px;color:var(--text2);margin-bottom:12px">เปลี่ยน Color Scheme ของ DB Haven ได้ทันที</div>
+                  <div style="font-size:11px;color:var(--text2);margin-bottom:12px">เปลี่ยน Color Scheme ของ BBH OT Aircon ได้ทันที</div>
                   <div class="theme-grid">
                     <div class="theme-card selected" id="tc-navy" onclick="setTheme('navy')">
                       <div class="theme-swatch" style="background:linear-gradient(135deg,#0D1117,#2F81F7)"></div>
@@ -1091,20 +1079,18 @@ function checkPassword(key,pass){
 
 // ---- NAV CONFIG per role ----
 const NAV_CONFIG = {
-  tenant:   [{id:'tenant',    icon:'🏢', label:'OT Request',    badge:()=>gData.tenantReqs.filter(r=>!r['Manager Consider(Approved/Waiting/Reject)']).length}],
-  building: [{id:'building',  icon:'🏗️', label:'Assign งาน',   badge:()=>gData.buildingAssigns.filter(r=>!r['Admin helpdaesk (Acknowledge/Reject)']).length},
-             {id:'db',        icon:'🗄️', label:'Database',       badge:()=>0}],
-  manager:  [{id:'manager',   icon:'✅', label:'Approve',        badge:()=>gData.buildingAssigns.filter(r=>r['Admin helpdaesk (Acknowledge/Reject)']&&!r['Manager Consider(Approved/Waiting/Reject)']).length},
-             {id:'tenant',    icon:'🏢', label:'ดูคำขอ',         badge:()=>0}],
-  eng:      [{id:'eng',       icon:'🔧', label:'งาน OT',         badge:()=>gData.engWork.filter(r=>r['Open_OT-Air(Time)']&&!r['Close_OT-Air(Time)']).length}],
-  cs:       [{id:'tenant',    icon:'🏢', label:'Tenant',         badge:()=>0},
-             {id:'building',  icon:'🏗️', label:'Building',       badge:()=>0},
-             {id:'manager',   icon:'✅', label:'Manager',        badge:()=>0},
-             {id:'eng',       icon:'🔧', label:'Engineering',    badge:()=>0},
-             {id:'cs',        icon:'📊', label:'CS Report',      badge:()=>0},
-             {id:'db',        icon:'🗄️', label:'Database',       badge:()=>0},
-             {id:'users',     icon:'👥', label:'Users',          badge:()=>pendingUsers().length},
-             {id:'settings',  icon:'⚙️', label:'Settings',       badge:()=>0}],
+  tenant:   [{id:'tenant',   icon:'🏢', label:'OT Request',   badge:()=>gData.tenantReqs.filter(r=>getStatus(r)==='pending').length}],
+  building: [{id:'building', icon:'🏗️', label:'Assign งาน',  badge:()=>gData.buildingAssigns.filter(r=>!r['Admin helpdaesk (Acknowledge/Reject)']).length},
+             {id:'db',       icon:'🗄️', label:'Database',      badge:()=>0}],
+  manager:  [{id:'building', icon:'🏗️', label:'Approve งาน', badge:()=>gData.buildingAssigns.filter(r=>!r['Manager Consider(Approved/Waiting/Reject)']).length}],
+  eng:      [{id:'eng',      icon:'🔧', label:'งาน OT',        badge:()=>gData.engWork.filter(r=>r['Open_OT-Air(Time)']&&!r['Close_OT-Air(Time)']).length}],
+  cs:       [{id:'tenant',   icon:'🏢', label:'Tenant',        badge:()=>0},
+             {id:'building', icon:'🏗️', label:'Building',      badge:()=>0},
+             {id:'eng',      icon:'🔧', label:'Engineering',   badge:()=>0},
+             {id:'cs',       icon:'📊', label:'CS Report',     badge:()=>0},
+             {id:'db',       icon:'🗄️', label:'Database',      badge:()=>0},
+             {id:'users',    icon:'👥', label:'Users',         badge:()=>pendingUsers().length},
+             {id:'settings', icon:'⚙️', label:'Settings',      badge:()=>0}],
 };
 
 // ---- STATE ----
@@ -1239,11 +1225,12 @@ function goPage(id, navEl){
   // Set topbar title
   const titles={tenant:'🏢 OT Request',building:'🏗️ Assign งาน',manager:'✅ Manager Approve',
     eng:'🔧 Engineering OT',cs:'📊 CS Report',db:'🗄️ Database',users:'👥 Users',settings:'⚙️ Settings'};
-  document.getElementById('topbar-title').textContent = titles[id]||'DB Haven';
+  document.getElementById('topbar-title').textContent = titles[id]||'BBH OT Aircon';
   document.getElementById('topbar-sub').textContent = currentBuilding==='ALL'?'All Buildings':'Building: '+currentBuilding;
 
   // Lazy load
   if(id==='db' && !dbData.staff.length) loadAllDB();
+  if(id==='building') setTimeout(()=>renderManagerTable(),100);
   if(id==='users') renderUserManagement();
   if(id==='settings') renderSettings();
   closeSidebar();
@@ -2122,7 +2109,7 @@ function exportCSV(){
   const csv=[keys.join(','),...data.map(r=>keys.map(k=>`"${r[k]||''}"`).join(','))].join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='DBHaven_OT_Report_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.download='BBH OT Aircon_OT_Report_'+new Date().toISOString().split('T')[0]+'.csv';
   a.click(); toast('⬇ Export CSV เรียบร้อย');
 }
 
