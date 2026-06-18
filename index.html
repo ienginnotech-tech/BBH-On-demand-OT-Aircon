@@ -897,8 +897,7 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="form-grid" style="align-items:flex-end">
                 <div class="fg">
                   <label class="flabel">เดือนที่ต้องการวางบิล (POSTMONTH)</label>
-                  <input class="finput" type="month" id="yadi-month" 
-                    value="${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}">
+                  <input class="finput" type="month" id="yadi-month">
                 </div>
                 <div class="fg">
                   <label class="flabel">Building</label>
@@ -1719,14 +1718,16 @@ function fillTenantInfo(){
   const sel=document.getElementById('nr-unit');
   const opt=sel.options[sel.selectedIndex];
   const nameEl=document.getElementById('nr-tenant-name');
-  if(opt && opt.dataset.name){
+  if(!nameEl) return;
+  // ดึงจาก data-name ของ option ที่เลือก (มาจาก Tenants list)
+  if(opt && opt.dataset && opt.dataset.name){
     nameEl.value=opt.dataset.name;
-  } else {
-    // ค้นหาจาก EXCEL_DATA
+  } else if(opt && opt.value){
     const bld=v('nr-bld');
-    const space=v('nr-unit');
-    const t=EXCEL_DATA.tenants.find(x=>x['Building']===bld&&x['Space']===space&&x['Name']);
+    const t=(EXCEL_DATA.tenants||[]).find(x=>x['Building']===bld&&x['Space']===opt.value&&x['Name']);
     nameEl.value=t?t['Name']:'';
+  } else {
+    nameEl.value='';
   }
 }
 
@@ -1742,8 +1743,8 @@ async function submitRequest(){
   // ดึง Tenant Info จาก dropdown ที่เลือก
   const sel=document.getElementById('nr-unit');
   const opt=sel?sel.options[sel.selectedIndex]:null;
-  const tenantInfo=EXCEL_DATA.tenants.find(t=>t['Building']===bld&&t['Space']===unit&&t['Name'])||
-    EXCEL_DATA.tenantsCurrent.find(t=>t['Building']===bld&&t['Space']===unit)||{};
+  // ดึงจาก Tenants list อย่างเดียว
+  const tenantInfo=(EXCEL_DATA.tenants||[]).find(t=>t['Building']===bld&&t['Space']===unit&&t['Name'])||{};
   const tenantNameDisplay=document.getElementById('nr-tenant-name')?document.getElementById('nr-tenant-name').value:'';
   if(USE_LIVE_API){
     toast('⏳ กำลังบันทึก...');
@@ -2218,20 +2219,24 @@ async function loadUnits(){
   const bld=v('nr-bld');
   if(!bld){ return; }
   const sel=document.getElementById('nr-unit');
+  const nameEl=document.getElementById('nr-tenant-name');
   sel.innerHTML='<option value="">— เลือก Unit —</option>';
-  // ใช้ EXCEL_DATA.tenants แทน tenantsCurrent เพื่อให้ได้ทุก Unit
-  const allTenants = EXCEL_DATA.tenants || [];
-  const units = allTenants.filter(t=>
+  if(nameEl) nameEl.value='';
+
+  // ใช้ Tenants list อย่างเดียว (ไม่ใช้ Building Name)
+  const units=(EXCEL_DATA.tenants||[]).filter(t=>
     t['Building']===bld &&
-    t['Space'] && t['Space'].trim() !== '' &&
-    (t['Status']==='Current' || t['Name'])
+    t['Space'] && t['Space'].trim()!=='' &&
+    t['Status']==='Current' && t['Name'] && t['Name'].trim()!==''
   );
+
   if(units.length){
     sel.innerHTML='<option value="">— เลือก Unit —</option>'+
-      units.map(u=>`<option value="${u['Space']}" data-name="${u['Name']||''}" data-area="${u['Area']||''}" data-code="${u['Code']||''}">${u['Space']}${u['Name']?' — '+(u['Name']||'').substring(0,30):''} (${u['Area']||'?'} m²)</option>`).join('');
+      units.map(u=>`<option value="${u['Space']}" data-name="${(u['Name']||'').replace(/"/g,'')}" data-area="${u['Area']||''}" data-code="${u['Code']||''}">`+
+        `${u['Space']} — ${(u['Name']||'').substring(0,35)} (${u['Area']||'?'} m²)`+
+      `</option>`).join('');
   } else {
-    const bldUnits=EXCEL_DATA.buildingsOffice.filter(b=>b['Building Name']===bld);
-    sel.innerHTML='<option value="">— เลือก Unit —</option>'+bldUnits.map(u=>`<option value="${u['Unit']}">${u['Unit']} (${u['SQM']} m²)</option>`).join('');
+    sel.innerHTML='<option value="">ไม่พบ Tenant ใน '+bld+'</option>';
   }
 }
 
@@ -2357,6 +2362,18 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('login-pass').addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();});
   loadApiUrl();
   setSyncStatus();
+  // ตั้งค่า default เดือนปัจจุบันใน YADI
+  (function(){
+    var n=new Date();
+    var ym=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
+    var el=document.getElementById('yadi-month');
+    if(el) el.value=ym;
+  })();
+  // ตั้งค่า default เดือนปัจจุบันใน YADI
+  const now=new Date();
+  const ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const yadiMonth=document.getElementById('yadi-month');
+  if(yadiMonth) yadiMonth.value=ym;
 });
 
 
