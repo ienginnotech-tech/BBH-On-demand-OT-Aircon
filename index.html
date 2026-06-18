@@ -1603,10 +1603,37 @@ async function doReject(i){
 }
 function doAssign(i){
   const r=gData.buildingAssigns[i]; if(!r)return;
+  // Populate request dropdown
   const sel=document.getElementById('as-req');
   sel.innerHTML='<option value="">— เลือก —</option>'+
     gData.buildingAssigns.map(row=>`<option value="${row['OT-AIR Work Request No.']}">${row['OT-AIR Work Request No.']} (${(row['Name']||'').substring(0,25)})</option>`).join('');
   sel.value=r['OT-AIR Work Request No.'];
+
+  // Populate Rate Code — กรองตาม Building
+  const bld = r['Building'] || '';
+  const rates = (allRateCodes.length ? allRateCodes : EXCEL_DATA.rates).filter(rc =>
+    !bld || rc['Building name'] === bld
+  );
+  const codeSel = document.getElementById('as-code');
+  if(codeSel){
+    codeSel.innerHTML='<option value="">— เลือก Rate Code —</option>'+
+      rates.map(rc=>`<option value="${rc['Code OT Air']}">${rc['Code OT Air']} — ${(rc['Description']||'').substring(0,40)}</option>`).join('');
+    // Pre-select ถ้ามีค่าเดิมอยู่
+    if(r['Code OT Air']) codeSel.value = r['Code OT Air'];
+  }
+
+  // Pre-fill staff, shift, billing
+  const staffSel=document.getElementById('as-staff');
+  if(r['Staff Name']){
+    let found=[...staffSel.options].find(o=>o.value===r['Staff Name']);
+    if(!found){const o=document.createElement('option');o.value=r['Staff Name'];o.textContent=r['Staff Name'];staffSel.appendChild(o);}
+    staffSel.value=r['Staff Name'];
+  }
+  if(r['Billing Date Period']){
+    const bs=document.getElementById('as-billing');
+    if(bs) bs.value=r['Billing Date Period'];
+  }
+
   openMod('mod-assign');
 }
 async function submitAssign(){
