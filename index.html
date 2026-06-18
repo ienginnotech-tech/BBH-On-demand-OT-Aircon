@@ -972,10 +972,22 @@ tbody tr:hover td{background:var(--surface2)}
         <select class="fselect" id="nr-bld" onchange="loadUnits();document.getElementById('nr-tenant-name').value='';">
           <option value="">— เลือก —</option><option>BTE</option><option>BTB</option><option>UBCII</option>
         </select></div>
-      <div class="fg"><label class="flabel">Space / Unit</label>
-        <select class="fselect" id="nr-unit" onchange="fillTenantInfo()"><option value="">— เลือก Building ก่อน —</option></select></div>
+      <div class="fg">
+        <label class="flabel">Space / Unit (พิมพ์เพื่อค้นหา)</label>
+        <input class="finput" id="nr-unit-search" type="text" 
+          placeholder="พิมพ์ชื่อบริษัท หรือ Unit เช่น 16-001"
+          oninput="filterUnitList()" autocomplete="off"
+          style="margin-bottom:4px">
+        <select class="fselect" id="nr-unit" size="5" onchange="fillTenantInfo()" 
+          style="height:auto;min-height:100px">
+          <option value="">— เลือก Building ก่อน —</option>
+        </select>
+        <div id="nr-unit-count" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+      </div>
       <div class="fg full"><label class="flabel">Tenant Name</label>
-        <input class="finput" id="nr-tenant-name" type="text" placeholder="— เลือก Unit ก่อน —" readonly style="color:var(--accent);background:var(--surface2)"></div>
+        <input class="finput" id="nr-tenant-name" type="text" 
+          placeholder="— เลือก Unit ก่อน —" readonly 
+          style="color:var(--accent);background:var(--surface2)"></div>
       <div class="fg full"><label class="flabel">ประเภท OT Air</label>
         <select class="fselect" id="nr-type">
           <option>ระบบปรับอากาศ-อากาศลมเย็น</option>
@@ -1343,6 +1355,22 @@ async function loadAllLive(){
     gData.buildingAssigns=ops.buildingAssigns||EXCEL_DATA.buildingAssigns;
     gData.engWork=ops.engWork||EXCEL_DATA.engWork;
     gData.csReport=ops.csReport||EXCEL_DATA.csReport;
+    // Sync สถานะจาก buildingAssigns → tenantReqs ทันที
+    const _bldMap={};
+    gData.buildingAssigns.forEach(function(b){
+      if(b['OT-AIR Work Request No.']) _bldMap[b['OT-AIR Work Request No.']]=b;
+    });
+    gData.tenantReqs.forEach(function(t){
+      const _no=t['OT-AIR Work Request No.'];
+      if(_no&&_bldMap[_no]){
+        const _b=_bldMap[_no];
+        ['Manager Consider(Approved/Waiting/Reject)',
+         'Admin helpdaesk (Acknowledge/Reject)',
+         'Staff Name','Code OT Air','Billing Date Period'].forEach(function(f){
+          if(_b[f]) t[f]=_b[f];
+        });
+      }
+    });
   }
 }
 
@@ -1720,6 +1748,26 @@ async function submitEngAction(){
 // ACTIONS: TENANT REQUEST
 // ============================================================
 let _submitting=false;
+
+// ข้อมูล units ที่โหลดไว้
+var _loadedUnits = [];
+
+function filterUnitList(){
+  const q = (document.getElementById('nr-unit-search').value || '').toLowerCase().trim();
+  const sel = document.getElementById('nr-unit');
+  const countEl = document.getElementById('nr-unit-count');
+  const filtered = q
+    ? _loadedUnits.filter(u =>
+        (u.space||'').toLowerCase().includes(q) ||
+        (u.name||'').toLowerCase().includes(q))
+    : _loadedUnits;
+  sel.innerHTML = '<option value="">— เลือก Unit —</option>' +
+    filtered.map(u =>
+      `<option value="${u.space}" data-name="${u.name}" data-area="${u.area}" data-code="${u.code}">`+
+      `${u.space} — ${(u.name||'').substring(0,35)} (${u.area||'?'} m²)</option>`
+    ).join('');
+  if(countEl) countEl.textContent = filtered.length + ' รายการ' + (q ? ' (กรองจาก '+_loadedUnits.length+')' : '');
+}
 
 function fillTenantInfo(){
   const sel=document.getElementById('nr-unit');
@@ -2227,23 +2275,35 @@ async function loadUnits(){
   if(!bld){ return; }
   const sel=document.getElementById('nr-unit');
   const nameEl=document.getElementById('nr-tenant-name');
-  sel.innerHTML='<option value="">— เลือก Unit —</option>';
+  const searchEl=document.getElementById('nr-unit-search');
+  const countEl=document.getElementById('nr-unit-count');
+  sel.innerHTML='<option value="">— กำลังโหลด —</option>';
   if(nameEl) nameEl.value='';
+  if(searchEl) searchEl.value='';
 
-  // ใช้ Tenants list อย่างเดียว (ไม่ใช้ Building Name)
+  // ใช้ Tenants list อย่างเดียว
   const units=(EXCEL_DATA.tenants||[]).filter(t=>
     t['Building']===bld &&
     t['Space'] && t['Space'].trim()!=='' &&
     t['Status']==='Current' && t['Name'] && t['Name'].trim()!==''
   );
 
-  if(units.length){
+  // เก็บไว้ใน _loadedUnits สำหรับ filter
+  _loadedUnits = units.map(u=>({
+    space: u['Space'], name: u['Name']||'',
+    area: u['Area']||'', code: u['Code']||''
+  }));
+
+  if(_loadedUnits.length){
     sel.innerHTML='<option value="">— เลือก Unit —</option>'+
-      units.map(u=>`<option value="${u['Space']}" data-name="${(u['Name']||'').replace(/"/g,'')}" data-area="${u['Area']||''}" data-code="${u['Code']||''}">`+
-        `${u['Space']} — ${(u['Name']||'').substring(0,35)} (${u['Area']||'?'} m²)`+
-      `</option>`).join('');
+      _loadedUnits.map(u=>
+        `<option value="${u.space}" data-name="${u.name.replace(/"/g,'')}" data-area="${u.area}" data-code="${u.code}">`+
+        `${u.space} — ${u.name.substring(0,35)} (${u.area||'?'} m²)</option>`
+      ).join('');
+    if(countEl) countEl.textContent = _loadedUnits.length + ' รายการ — พิมพ์ด้านบนเพื่อค้นหา';
   } else {
     sel.innerHTML='<option value="">ไม่พบ Tenant ใน '+bld+'</option>';
+    if(countEl) countEl.textContent='';
   }
 }
 
