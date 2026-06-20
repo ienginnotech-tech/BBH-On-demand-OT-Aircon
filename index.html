@@ -1729,7 +1729,7 @@ async function submitAssign(){
     const eIdx=gData.engWork.findIndex(r=>r['OT-AIR Work Request No.']==='req');
     if(eIdx>=0){gData.engWork[eIdx]['Staff Name']=staff;gData.engWork[eIdx]['Shift']=shift;gData.engWork[eIdx]['Code OT Air']=code;}
   }
-  if(USE_LIVE_API) await apiGET({action:'assign',data:encodeURIComponent(JSON.stringify({reqNo:req,staffName:staff,shift,codeOtAir:code}))});
+  if(USE_LIVE_API) await apiGET({action:'assign',data:encodeURIComponent(JSON.stringify({reqNo:req,staffName:staff,shift,codeOtAir:code,billingDatePeriod:billing}))});
   renderBuildingTable(); renderEngTable(); updateAllStats();
   closeMod('mod-assign');
   toast('✅ มอบหมาย '+req+' → '+staff+(USE_LIVE_API?' (Sync แล้ว)':''));
