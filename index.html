@@ -460,7 +460,8 @@ tbody tr:hover td{background:var(--surface2)}
         <option value="eng-UBCII">Engineering — UBCII</option>
       </optgroup>
       <optgroup label="📊 CS / Admin">
-        <option value="cs">CS — Super Admin</option>
+        <option value="cs">CS — CS Admin</option>
+        <option value="admin">Admin System</option>
       </optgroup>
     </select>
     <label class="auth-label">Password / Access Key</label>
@@ -469,7 +470,7 @@ tbody tr:hover td{background:var(--surface2)}
     <div class="auth-divider">หรือ</div>
     <button class="auth-btn secondary" onclick="showScreen('register')">ลงทะเบียนผู้ใช้ใหม่</button>
     <div style="text-align:center;margin-top:16px;font-size:10px;color:var(--text3)">
-      Demo: tenant-BTE=bte123 | building-BTE=bldBTE | eng-BTE=engBTE | cs=cs@admin
+      Demo: tenant-BTE=bte123 | building-BTE=bldBTE | eng-BTE=engBTE | cs=cs@admin | admin=admin999
     </div>
   </div>
 </div>
@@ -1174,6 +1175,44 @@ const DEFAULT_PASSWORDS = {
 let _sheetPasswords = {};
 let _sheetUsers = [];
 
+// ---- NAV CONFIG per role ----
+const NAV_CONFIG = {
+  // Tenant: เห็นแค่ OT Request
+  tenant:   [{id:'tenant',   icon:'🏢', label:'OT Request',   badge:()=>gData.tenantReqs.filter(r=>getStatus(r)==='pending').length}],
+  // Building: เห็น Assign งาน + Database
+  building: [{id:'building', icon:'🏗️', label:'Assign งาน',  badge:()=>gData.buildingAssigns.filter(r=>!r['Admin helpdesk (Acknowledge/Reject)']).length},
+             {id:'db',       icon:'🗄️', label:'Database',      badge:()=>0}],
+  // Engineering: เห็นแค่งาน OT
+  eng:      [{id:'eng',      icon:'🔧', label:'งาน OT',        badge:()=>gData.engWork.filter(r=>r['Open_OT-Air(Time)']&&!r['Close_OT-Air(Time)']).length}],
+  // CS: เห็นทุกหน้าของ operation ยกเว้น Users/Settings
+  cs:       [{id:'tenant',   icon:'🏢', label:'Tenant',        badge:()=>0},
+             {id:'building', icon:'🏗️', label:'Building',      badge:()=>0},
+             {id:'eng',      icon:'🔧', label:'Engineering',   badge:()=>0},
+             {id:'cs',       icon:'📊', label:'CS Report',     badge:()=>0},
+             {id:'yadi',     icon:'📤', label:'Sent to YADI',  badge:()=>0},
+             {id:'db',       icon:'🗄️', label:'Database',      badge:()=>0}],
+  // Admin (Super Admin): เห็นทุกหน้ารวม Users + Settings
+  admin:    [{id:'tenant',   icon:'🏢', label:'Tenant',        badge:()=>0},
+             {id:'building', icon:'🏗️', label:'Building',      badge:()=>0},
+             {id:'eng',      icon:'🔧', label:'Engineering',   badge:()=>0},
+             {id:'cs',       icon:'📊', label:'CS Report',     badge:()=>0},
+             {id:'yadi',     icon:'📤', label:'Sent to YADI',  badge:()=>0},
+             {id:'db',       icon:'🗄️', label:'Database',      badge:()=>0},
+             {id:'users',    icon:'👥', label:'Users',         badge:()=>pendingUsers().length},
+             {id:'settings', icon:'⚙️', label:'Settings',      badge:()=>0}],
+};
+
+// ---- STATE ----
+let currentUser = null;
+let currentRole = null;
+let currentBuilding = null;
+let currentEngRow = null;
+let allRateCodes = [];
+let gData = {tenantReqs:[],buildingAssigns:[],engWork:[],csReport:[]};
+let dbData = {staff:[],types:[],levels:[],rates:[],buildings:[],tenants:[]};
+let APPS_SCRIPT_URL = localStorage.getItem('bbh_api_url')||'https://script.google.com/macros/s/AKfycbxrR5B4UjyMyXQUR0wAt6h63oGPZZury23iUfj_DmOD9oILByVDXH5qvp0wZ6rsb-zA/exec';
+let USE_LIVE_API = APPS_SCRIPT_URL !== '';
+
 async function loadAuthData(){
   try {
     const [pwRes, usrRes] = await Promise.all([
@@ -1218,8 +1257,12 @@ async function savePasswordsToSheet(pwObj){
 }
 
 // ============================================================
-// AUTH
+// AUTH — preload ข้อมูลจาก Sheet ทันทีที่เปิดหน้าเว็บ (background)
 // ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  if(USE_LIVE_API) loadAuthData().catch(()=>{});
+});
+
 function doLogin(){
   const mod = document.getElementById('login-module').value;
   const pass = document.getElementById('login-pass').value;
@@ -1227,11 +1270,9 @@ function doLogin(){
   if(!mod){showAuthErr('login-err','กรุณาเลือก Module');return;}
   if(!pass){showAuthErr('login-err','กรุณากรอก Password');return;}
 
-  // Check registered users first
+  // ใช้ข้อมูลที่โหลดไว้แล้วตอนเปิดหน้า (background preload)
   const users = getRegisteredUsers().filter(u=>u.status==='approved');
   const regUser = users.find(u=>u.moduleKey===mod && u.password===pass);
-
-  // Check built-in passwords
   const builtIn = checkPassword(mod, pass);
 
   if(!regUser && !builtIn){
@@ -1271,7 +1312,7 @@ function showScreen(s){
 // ============================================================
 // REGISTER
 // ============================================================
-function submitRegister(){
+async function submitRegister(){
   const name=v('reg-name'),company=v('reg-company'),email=v('reg-email'),
         tel=v('reg-tel'),bld=v('reg-bld'),role=v('reg-role'),
         pass=v('reg-pass'),note=v('reg-note');
@@ -1303,13 +1344,11 @@ function startApp(){
   buildSidebar();
   setSyncStatus();
   loadApiUrl();
-  // โหลด passwords + users จาก Google Sheet ทุกครั้งที่ login
-  if(USE_LIVE_API) loadAuthData();
   initApp();
 }
 
 function buildSidebar(){
-  const role = currentRole==='admin'?'cs':currentRole;
+  const role = currentRole;
   const navItems = NAV_CONFIG[role]||NAV_CONFIG.cs;
   const nav = document.getElementById('sidebar-nav');
   nav.innerHTML = `<div class="sidebar-section">MENU</div>`+
