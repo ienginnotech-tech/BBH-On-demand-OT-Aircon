@@ -2028,8 +2028,8 @@ function renderBuildingRows(data, wrap){
     <thead><tr><th>เลขที่</th><th>Tenant</th><th>Bld</th><th>Space</th><th>เวลา</th><th>Admin</th><th>ช่าง</th><th>Billing</th><th></th></tr></thead>
     <tbody>${data.map((r,i)=>{
       const ack=r['Admin helpdesk (Acknowledge/Reject)'];
-      const isRejected = ack==='Reject';
-      const isAcked = ack==='Acknowledge' || ack==='Acknowledde';
+      const isRejected = ack.toLowerCase()==='reject';
+      const isAcked = ack.toLowerCase()==='acknowledge';
       // ปุ่ม Ack (แสดงเฉพาะถ้ายังไม่ Ack และไม่ Reject)
       const _no=encodeURIComponent(r['OT-AIR Work Request No.']||'');
       let actions;
@@ -2073,9 +2073,9 @@ function setFB(btn,f){
   const base=filterByBuilding(gData.buildingAssigns);
   const filtered=
     f==='new-b'?base.filter(r=>!r['Admin helpdesk (Acknowledge/Reject)']):
-    f==='wait-b'?base.filter(r=>r['Admin helpdesk (Acknowledge/Reject)']&&r['Admin helpdesk (Acknowledge/Reject)']!=='Reject'&&!r['Staff Name']):
-    f==='ok-b'?base.filter(r=>!!r['Staff Name']&&r['Admin helpdesk (Acknowledge/Reject)']!=='Reject'):
-    f==='reject-b'?base.filter(r=>r['Admin helpdesk (Acknowledge/Reject)']==='Reject'):
+    f==='wait-b'?base.filter(r=>r['Admin helpdesk (Acknowledge/Reject)']&&String(r['Admin helpdesk (Acknowledge/Reject)']||'').toLowerCase()!=='reject'&&!r['Staff Name']):
+    f==='ok-b'?base.filter(r=>!!r['Staff Name']&&String(r['Admin helpdesk (Acknowledge/Reject)']||'').toLowerCase()!=='reject'):
+    f==='reject-b'?base.filter(r=>String(r['Admin helpdesk (Acknowledge/Reject)']||'').toLowerCase()==='reject'):
     base;
   renderBuildingRows(filtered, document.getElementById('building-table-wrap'));
 }
@@ -2093,7 +2093,7 @@ function renderEngRows(data, wrap){
   // ดึง reject map จาก buildingAssigns
   // Reject จาก CLS หรือ Engineering ถือว่ายกเลิก
   const rejectSet=new Set([
-    ...(gData.buildingAssigns||[]).filter(r=>r['Admin helpdesk (Acknowledge/Reject)']==='Reject').map(r=>r['OT-AIR Work Request No.']),
+    ...(gData.buildingAssigns||[]).filter(r=>String(r['Admin helpdesk (Acknowledge/Reject)']||'').toLowerCase()==='reject').map(r=>r['OT-AIR Work Request No.']),
     ...(gData.engWork||[]).filter(r=>r['Engineering Action(Acknowledge/Reject)']==='Reject').map(r=>r['OT-AIR Work Request No.']),
   ]);
   wrap.innerHTML=`<div class="table-wrap"><table>
@@ -3418,7 +3418,7 @@ function generateYADI() {
   // สร้าง reject map จาก Building_OT Assign
   var rejectMap = {};
   bldData.forEach(function(r) {
-    if (r['Admin helpdesk (Acknowledge/Reject)'] === 'Reject') {
+    if (String(r['Admin helpdesk (Acknowledge/Reject)']||'').toLowerCase() === 'reject') {
       rejectMap[r['OT-AIR Work Request No.']] = true;
     }
   });
