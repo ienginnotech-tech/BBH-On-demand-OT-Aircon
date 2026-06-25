@@ -2036,10 +2036,19 @@ function renderBuildingRows(data, wrap){
       const isAcked = ack==='Acknowledge' || ack==='Acknowledde';
       // ปุ่ม Ack (แสดงเฉพาะถ้ายังไม่ Ack และไม่ Reject)
       const _no=encodeURIComponent(r['OT-AIR Work Request No.']||'');
-      const ackBtn = (!ack||isRejected) && !isAcked ? `<button class="btn btn-g btn-sm" onclick="doAckByNo('${_no}')">✓ Ack</button>` : '';
-      // ปุ่ม Reject — แสดงทุกแถวที่ยังไม่ Reject
-      const rejBtn = !isRejected ? `<button class="btn btn-r btn-sm" onclick="doRejectByNo('${_no}')" title="แจ้งซ้ำ/ยกเลิก">✕ Reject</button>` : `<button class="btn btn-g btn-sm" onclick="doAckByNo('${_no}')" title="ยกเลิก Reject">↩ Restore</button>`;
-      const actions=`<div style="display:flex;gap:3px;flex-wrap:wrap">${ackBtn}${rejBtn}${!isRejected?`<button class="btn btn-p btn-sm" onclick="doAssignByNo('${_no}')">${r['Staff Name']?'✏️ แก้ไข':'👷 มอบหมาย'}</button>`:''}<button class="btn btn-o btn-sm" onclick="showDetail(${i},'building')">ดู</button></div>`;
+      let actions;
+      if(isRejected){
+        // ยกเลิกแล้ว — แสดงแค่ Restore และ ดู ไม่มีปุ่มอื่น
+        actions=`<div style="display:flex;gap:3px;flex-wrap:wrap">
+          <button class="btn btn-g btn-sm" onclick="doAckByNo('${_no}')" title="ยกเลิก Reject">↩ Restore</button>
+          <button class="btn btn-o btn-sm" onclick="showDetail(${i},'building')">ดู</button>
+        </div>`;
+      } else {
+        const ackBtn = !isAcked ? `<button class="btn btn-g btn-sm" onclick="doAckByNo('${_no}')">✓ Ack</button>` : '';
+        const rejBtn = `<button class="btn btn-r btn-sm" onclick="doRejectByNo('${_no}')" title="ยกเลิก">✕ Reject</button>`;
+        const assignBtn = `<button class="btn btn-p btn-sm" onclick="doAssignByNo('${_no}')">${r['Staff Name']?'✏️ แก้ไข':'👷 มอบหมาย'}</button>`;
+        actions=`<div style="display:flex;gap:3px;flex-wrap:wrap">${ackBtn}${rejBtn}${assignBtn}<button class="btn btn-o btn-sm" onclick="showDetail(${i},'building')">ดู</button></div>`;
+      }
       // style แถว Rejected
       const rowStyle = isRejected ? 'opacity:.55;background:rgba(248,81,73,.04)' : '';
       const adminTag = isRejected
@@ -2086,7 +2095,11 @@ function renderEngRows(data, wrap){
   if(!wrap) return;
   if(!data.length){wrap.innerHTML=emptyState('ไม่มีงาน OT');return;}
   // ดึง reject map จาก buildingAssigns
-  const rejectSet=new Set((gData.buildingAssigns||[]).filter(r=>r['Admin helpdesk (Acknowledge/Reject)']==='Reject').map(r=>r['OT-AIR Work Request No.']));
+  // Reject จาก CLS หรือ Engineering ถือว่ายกเลิก
+  const rejectSet=new Set([
+    ...(gData.buildingAssigns||[]).filter(r=>r['Admin helpdesk (Acknowledge/Reject)']==='Reject').map(r=>r['OT-AIR Work Request No.']),
+    ...(gData.engWork||[]).filter(r=>r['Engineering Action(Acknowledge/Reject)']==='Reject').map(r=>r['OT-AIR Work Request No.']),
+  ]);
   wrap.innerHTML=`<div class="table-wrap"><table>
     <thead><tr><th>เลขที่</th><th>Bld</th><th>Space</th><th>เวลา Plan</th><th>ช่าง</th><th>Rate Code</th><th>เปิดจริง</th><th>ปิดจริง</th><th>ชม.จริง</th><th>สถานะ</th><th></th></tr></thead>
     <tbody>${data.map((r,i)=>{
@@ -2102,7 +2115,7 @@ function renderEngRows(data, wrap){
       } else if(isDone){
         stTag=`<span class="tag t-green">✓ ปิดแล้ว</span>`;
         action=`<button class="btn btn-o btn-sm" onclick="showDetail(${i},'eng')">ดู</button>`;
-      } else if(isOpen){
+      } else if(isOpen && !isRejected){
         stTag=`<span class="tag t-amber">⚙ กำลังเปิด</span>`;
         const _eno2=encodeURIComponent(r['OT-AIR Work Request No.']||'');
         action=`<button class="btn btn-r btn-sm" onclick="engActionByNo('${_eno2}','close')">■ ปิด</button>`;
